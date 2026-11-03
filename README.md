@@ -98,7 +98,7 @@ Use your computer's local IP (not `localhost`) so the phone can reach the API.
 
 1. This repository is already on GitHub.
 2. Render → **New → Blueprint** → pick the repository. It creates the API + admin and the database.
-3. In the Render dashboard fill in `ENCRYPTION_KEY`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and (optional) `ANTHROPIC_API_KEY`.
+3. When Render asks, fill in `ADMIN_EMAIL`, `ADMIN_PASSWORD` (12+ characters) and, optionally, `ANTHROPIC_API_KEY`. The security keys are generated for you.
 4. Open `https://<your-service>.onrender.com/admin` and sign in.
 5. Put that URL in `mobile/eas.json` (`EXPO_PUBLIC_API_URL`) for store builds.
 

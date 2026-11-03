@@ -22,8 +22,8 @@ services:
         value: "false"
       - key: JWT_SECRET
         generateValue: true
-      - key: ENCRYPTION_KEY # 32 random bytes, base64. Generate once, never change after real data exists.
-        sync: false
+      - key: ENCRYPTION_KEY # Render generates a random 256-bit base64 key once. Never change it after real data exists.
+        generateValue: true
       - key: ADMIN_EMAIL
         sync: false
       - key: ADMIN_PASSWORD
