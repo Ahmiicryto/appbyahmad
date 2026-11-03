@@ -1,0 +1,51 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-11-02T10:00:00Z"},
+  "title": "AppByAhmad Screens",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 390, "h": 844, "title": "1 · Onboarding", "is_interactive": true, "radius": 44},
+    "Today.dc.html": {"x": 470, "y": 0, "w": 390, "h": 844, "title": "2 · Today", "is_interactive": true, "radius": 44},
+    "Goals.dc.html": {"x": 940, "y": 0, "w": 390, "h": 844, "title": "3 · Goals", "is_interactive": true, "radius": 44},
+    "CheckIn.dc.html": {"x": 1410, "y": 0, "w": 390, "h": 844, "title": "4 · Adaptive check-in", "is_interactive": true, "radius": 44},
+    "Money.dc.html": {"x": 1880, "y": 0, "w": 390, "h": 844, "title": "5 · Money", "is_interactive": true, "radius": 44},
+    "Fitness.dc.html": {"x": 2350, "y": 0, "w": 390, "h": 844, "title": "6 · Fitness", "is_interactive": true, "radius": 44},
+    "Nutrition.dc.html": {"x": 2820, "y": 0, "w": 390, "h": 844, "title": "7 · Nutrition", "is_interactive": true, "radius": 44},
+    "Career.dc.html": {"x": 0, "y": 964, "w": 390, "h": 844, "title": "8 · Career", "is_interactive": true, "radius": 44},
+    "Journal.dc.html": {"x": 470, "y": 964, "w": 390, "h": 844, "title": "9 · Journal", "is_interactive": true, "radius": 44},
+    "Review.dc.html": {"x": 940, "y": 964, "w": 390, "h": 844, "title": "10 · Weekly review", "is_interactive": true, "radius": 44},
+    "FutureMe.dc.html": {"x": 1410, "y": 964, "w": 390, "h": 844, "title": "11 · Future Me", "is_interactive": true, "radius": 44},
+    "Decision.dc.html": {"x": 1880, "y": 964, "w": 390, "h": 844, "title": "12 · Decision assistant", "is_interactive": true, "radius": 44},
+    "Assistant.dc.html": {"x": 2350, "y": 964, "w": 390, "h": 844, "title": "13 · Assistant", "is_interactive": true, "radius": 44},
+    "Premium.dc.html": {"x": 2820, "y": 964, "w": 390, "h": 844, "title": "14 · Premium", "is_interactive": true, "radius": 44},
+    "Female-Main.dc.html": {"x": 0, "y": 2328, "w": 390, "h": 844, "title": "F1 · Onboarding", "is_interactive": true, "radius": 44},
+    "Female-Today.dc.html": {"x": 470, "y": 2328, "w": 390, "h": 844, "title": "F2 · Today", "is_interactive": true, "radius": 44},
+    "Female-Goals.dc.html": {"x": 940, "y": 2328, "w": 390, "h": 844, "title": "F3 · Goals", "is_interactive": true, "radius": 44},
+    "Female-CheckIn.dc.html": {"x": 1410, "y": 2328, "w": 390, "h": 844, "title": "F4 · Adaptive check-in", "is_interactive": true, "radius": 44},
+    "Female-Money.dc.html": {"x": 1880, "y": 2328, "w": 390, "h": 844, "title": "F5 · Money", "is_interactive": true, "radius": 44},
+    "Female-Fitness.dc.html": {"x": 2350, "y": 2328, "w": 390, "h": 844, "title": "F6 · Fitness", "is_interactive": true, "radius": 44},
+    "Female-Nutrition.dc.html": {"x": 2820, "y": 2328, "w": 390, "h": 844, "title": "F7 · Nutrition", "is_interactive": true, "radius": 44},
+    "Female-Career.dc.html": {"x": 0, "y": 3292, "w": 390, "h": 844, "title": "F8 · Career", "is_interactive": true, "radius": 44},
+    "Female-Journal.dc.html": {"x": 470, "y": 3292, "w": 390, "h": 844, "title": "F9 · Journal", "is_interactive": true, "radius": 44},
+    "Female-Review.dc.html": {"x": 940, "y": 3292, "w": 390, "h": 844, "title": "F10 · Weekly review", "is_interactive": true, "radius": 44},
+    "Female-FutureMe.dc.html": {"x": 1410, "y": 3292, "w": 390, "h": 844, "title": "F11 · Future Me", "is_interactive": true, "radius": 44},
+    "Female-Decision.dc.html": {"x": 1880, "y": 3292, "w": 390, "h": 844, "title": "F12 · Decision assistant", "is_interactive": true, "radius": 44},
+    "Female-Assistant.dc.html": {"x": 2350, "y": 3292, "w": 390, "h": 844, "title": "F13 · Assistant", "is_interactive": true, "radius": 44},
+    "Female-Premium.dc.html": {"x": 2820, "y": 3292, "w": 390, "h": 844, "title": "F14 · Premium", "is_interactive": true, "radius": 44},
+    "TabBar.dc.html": {"x": 0, "y": 4256, "w": 390, "h": 84, "title": "Component · Tab bar"}
+  },
+  "order": [
+    "Main.dc.html", "Today.dc.html", "Goals.dc.html", "CheckIn.dc.html", "Money.dc.html", "Fitness.dc.html", "Nutrition.dc.html",
+    "Career.dc.html", "Journal.dc.html", "Review.dc.html", "FutureMe.dc.html", "Decision.dc.html", "Assistant.dc.html", "Premium.dc.html",
+    "Female-Main.dc.html", "Female-Today.dc.html", "Female-Goals.dc.html", "Female-CheckIn.dc.html", "Female-Money.dc.html", "Female-Fitness.dc.html", "Female-Nutrition.dc.html",
+    "Female-Career.dc.html", "Female-Journal.dc.html", "Female-Review.dc.html", "Female-FutureMe.dc.html", "Female-Decision.dc.html", "Female-Assistant.dc.html", "Female-Premium.dc.html",
+    "TabBar.dc.html"
+  ],
+  "notes": {
+    "maleTitle": {"x": 0, "y": -300, "text": "Male theme — Black + Green", "kind": "title1", "maxW": 3210},
+    "femaleTitle": {"x": 0, "y": 2028, "text": "Female theme — Black + Maroon", "kind": "title1", "maxW": 3210},
+    "howTo": {"x": -520, "y": 0, "w": 400, "text": "Every screen has a Theme tweak: male, female, or neutral (White + Black, for “Prefer not to answer”).\n\nPress Play on Onboarding and tap a gender to watch the whole screen recolor. Tab bar, chips and cards link between screens.", "fill": "teal", "size": "m"}
+  },
+  "designSystems": []
+}

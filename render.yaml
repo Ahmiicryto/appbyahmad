@@ -1,0 +1,41 @@
+# Render Blueprint: Dashboard -> New -> Blueprint -> pick this repo.
+# Creates the API + admin dashboard (one web service) and a Postgres database.
+# After the first deploy, fill the "sync: false" values in the dashboard.
+
+services:
+  - type: web
+    name: appbyahmad-api
+    runtime: node
+    rootDir: server
+    plan: starter
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: appbyahmad-db
+          property: connectionString
+      - key: DATABASE_SSL
+        value: "false"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ENCRYPTION_KEY # 32 random bytes, base64. Generate once, never change after real data exists.
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: AI_MODEL
+        value: claude-opus-5-5
+      - key: ALLOW_SIGNUP
+        value: "true"
+
+databases:
+  - name: appbyahmad-db
+    plan: basic-256mb
+    postgresMajorVersion: "16"

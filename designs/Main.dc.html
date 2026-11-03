@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Onboarding — Pick your look</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+@keyframes lo-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes lo-draw{from{stroke-dashoffset:100}}
+@keyframes lo-grow{from{transform:scaleX(0)}}
+@keyframes lo-up{from{transform:scaleY(0)}}
+@keyframes lo-pulse{0%,100%{box-shadow:0 0 0 0 var(--g)}60%{box-shadow:0 0 0 12px rgba(0,0,0,0)}}
+@keyframes lo-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes lo-shine{from{transform:translateX(-120%)}to{transform:translateX(320%)}}
+@keyframes lo-blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+@keyframes lo-twinkle{0%,100%{opacity:.2}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</helmet>
+<div style="width:390px;height:844px;position:relative;overflow:hidden;box-sizing:border-box;padding:56px 20px 28px;display:flex;flex-direction:column;gap:18px;background:{{t.bg}};color:{{t.text}};font-family:Manrope,system-ui,sans-serif;transition:background .5s ease,color .5s ease">
+  <div style="display:flex;align-items:center;gap:12px">
+    <button aria-label="Back" style="width:44px;height:44px;flex:none;border-radius:14px;border:1px solid {{t.line}};background:{{t.s1}};color:{{t.text}};display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .5s"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></button>
+    <div style="flex:1;display:flex;gap:4px" aria-hidden="true">
+      <sc-for list="{{steps}}" as="s" hint-placeholder-count="8">
+        <div style="flex:1;height:4px;border-radius:2px;background:{{s.c}};transition:background .5s"></div>
+      </sc-for>
+    </div>
+    <span style="font-size:13px;font-weight:600;color:{{t.muted}}">7 of 8</span>
+  </div>
+
+  <div style="animation:lo-rise .6s cubic-bezier(.2,.8,.2,1) both">
+    <p style="margin:0 0 8px;font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:{{t.ink}};transition:color .5s">Tell us about you</p>
+    <h1 style="margin:0;font-size:30px;line-height:1.15;font-weight:800;letter-spacing:-.02em">Pick your look</h1>
+    <p style="margin:8px 0 0;font-size:15px;line-height:1.5;color:{{t.muted}}">Your answer sets your starting theme. You can change it anytime in Settings.</p>
+  </div>
+
+  <div role="radiogroup" aria-label="Gender" style="display:flex;flex-direction:column;gap:10px">
+    <sc-for list="{{opts}}" as="o" hint-placeholder-count="3">
+      <button role="radio" aria-checked="{{o.sel}}" onClick="{{o.pick}}" style="display:flex;align-items:center;gap:14px;padding:12px 14px;min-height:68px;border-radius:18px;border:1.5px solid {{o.border}};background:{{o.bg}};color:{{t.text}};text-align:left;cursor:pointer;font:inherit;transition:all .4s ease;animation:lo-rise .6s cubic-bezier(.2,.8,.2,1) both;animation-delay:{{o.delay}}">
+        <span aria-hidden="true" style="width:44px;height:44px;flex:none;border-radius:14px;background:{{o.sw1}};border:1px solid {{o.swb}};display:flex;align-items:center;justify-content:center"><span style="width:18px;height:18px;border-radius:9px;background:{{o.sw2}}"></span></span>
+        <span style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-size:16px;font-weight:700">{{o.label}}</span><span style="font-size:13px;color:{{t.muted}}">{{o.sub}}</span></span>
+        <span aria-hidden="true" style="width:24px;height:24px;flex:none;box-sizing:border-box;border-radius:12px;border:2px solid {{o.ring}};background:{{o.dot}};display:flex;align-items:center;justify-content:center;transition:all .3s">
+          <sc-if value="{{o.isSel}}" hint-placeholder-val="{{false}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="{{t.onAcc}}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"></path></svg></sc-if>
+        </span>
+      </button>
+    </sc-for>
+  </div>
+
+  <div style="padding:16px;border-radius:22px;background:{{t.s1}};border:1px solid {{t.line}};display:flex;gap:16px;align-items:center;animation:lo-rise .7s .3s cubic-bezier(.2,.8,.2,1) both;transition:all .5s">
+    <svg width="84" height="84" viewBox="0 0 84 84" role="img" aria-label="Life Score preview: 782 of 1000"><circle cx="42" cy="42" r="34" fill="none" stroke="{{t.track}}" stroke-width="8"></circle><circle cx="42" cy="42" r="34" fill="none" stroke="{{t.ink}}" stroke-width="8" stroke-linecap="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="22" transform="rotate(-90 42 42)" style="animation:lo-draw 1.4s .4s cubic-bezier(.2,.8,.2,1) both;transition:stroke .5s"></circle><text x="42" y="48" text-anchor="middle" font-family="Space Grotesk" font-weight="700" font-size="18" fill="{{t.text}}">782</text></svg>
+    <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+      <span style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:{{t.muted}}">Live preview</span>
+      <sc-for list="{{preview}}" as="r" hint-placeholder-count="3">
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600">
+          <span aria-hidden="true" style="width:16px;height:16px;border-radius:5px;background:{{r.fill}};border:1.5px solid {{r.box}};box-sizing:border-box;transition:all .5s"></span>
+          <span style="color:{{r.tc}}">{{r.label}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:8px;animation:lo-rise .7s .4s cubic-bezier(.2,.8,.2,1) both">
+    <span style="font-size:12px;font-weight:700;color:{{t.muted}}">Saved to your profile</span>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">
+      <sc-for list="{{chips}}" as="c" hint-placeholder-count="5">
+        <span style="padding:6px 10px;border-radius:999px;background:{{t.s2}};border:1px solid {{t.line}};font-size:12px;font-weight:600;transition:all .5s">{{c}}</span>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="flex:1"></div>
+  <button style="--g:{{t.glow}};height:56px;flex:none;border-radius:18px;border:0;background:{{t.acc}};color:{{t.onAcc}};font:inherit;font-size:17px;font-weight:800;cursor:pointer;animation:lo-pulse 2.4s ease-in-out infinite;transition:background .5s,color .5s">Continue</button>
+  <p style="margin:-6px 0 0;text-align:center;font-size:12px;color:{{t.muted}}">We only use this to personalize your plan.</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["male","female","neutral"],"default":"male"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  themes() {
+    return {
+      male: {bg:"#090C0A",s1:"#111713",s2:"#18211B",line:"#253029",text:"#EEF4EF",muted:"#9AAAA0",acc:"#22C55E",onAcc:"#03140A",ink:"#4ADE80",soft:"rgba(74,222,128,0.10)",glow:"rgba(34,197,94,0.45)",track:"#1F2A23",c2:"#F5B841",c3:"#5AB8F0",c4:"#B794F6",bad:"#F87171"},
+      female: {bg:"#0C090A",s1:"#171012",s2:"#21161A",line:"#35252B",text:"#F6EEF0",muted:"#BCA4AB",acc:"#9B1C3A",onAcc:"#FFFFFF",ink:"#F2849E",soft:"rgba(242,132,158,0.10)",glow:"rgba(194,38,79,0.5)",track:"#2B1E22",c2:"#F5B841",c3:"#5AB8F0",c4:"#B794F6",bad:"#F87171"},
+      neutral: {bg:"#FFFFFF",s1:"#F4F4F5",s2:"#EAEAEC",line:"#E1E1E4",text:"#0A0A0A",muted:"#55555E",acc:"#0A0A0A",onAcc:"#FFFFFF",ink:"#0A0A0A",soft:"rgba(10,10,10,0.05)",glow:"rgba(10,10,10,0.25)",track:"#E4E4E7",c2:"#9A6A12",c3:"#1F6FB2",c4:"#6B46C1",bad:"#C53030"}
+    };
+  }
+  renderVals() {
+    const all = this.themes();
+    const g = (this.state || {}).g || this.props.theme || "male";
+    const t = all[g] || all.male;
+    const defs = [
+      { id: "male", label: "Male", sub: "Black + Green theme" },
+      { id: "female", label: "Female", sub: "Black + Maroon theme" },
+      { id: "neutral", label: "Prefer not to answer", sub: "White + Black theme" }
+    ];
+    const opts = defs.map((d, i) => {
+      const th = all[d.id];
+      const sel = d.id === g;
+      return {
+        label: d.label, sub: d.sub, sel: sel ? "true" : "false", isSel: sel,
+        sw1: th.bg, sw2: th.acc, swb: th.line,
+        border: sel ? t.ink : t.line, bg: sel ? t.soft : t.s1,
+        ring: sel ? t.acc : t.line, dot: sel ? t.acc : "transparent",
+        delay: (0.1 + i * 0.08) + "s",
+        pick: () => this.setState({ g: d.id })
+      };
+    });
+    const steps = [0, 1, 2, 3, 4, 5, 6, 7].map((i) => ({ c: i < 7 ? t.ink : t.track }));
+    const preview = [
+      { label: "Finish landing page", done: true },
+      { label: "Push workout · 45 min", done: true },
+      { label: "Spend under $40", done: false }
+    ].map((r) => ({ label: r.label, fill: r.done ? t.acc : "transparent", box: r.done ? t.acc : t.line, tc: r.done ? t.muted : t.text }));
+    const chips = ["Hamza", "178 cm", "82 kg", "Designer", "“Driven”", "Wants to become a founder"];
+    return { t, opts, steps, preview, chips };
+  }
+}
+</script>
+</body>
+</html>
