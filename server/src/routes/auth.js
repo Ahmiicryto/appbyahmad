@@ -7,6 +7,7 @@ import { checkPassword, hashPassword, publicUser, requireAuth, signToken } from 
 import { badRequest, forbidden, HttpError } from "../lib/errors.js";
 import { audit } from "../services/audit.js";
 import { getProfile } from "./profile.js";
+import { getSetting } from "../services/settings.js";
 
 export const authRouter = Router();
 
@@ -24,7 +25,7 @@ const Credentials = z.object({
 });
 
 authRouter.post("/register", limiter, async (req, res) => {
-  if (!config.ALLOW_SIGNUP) throw forbidden("Sign-ups are closed right now.");
+  if (!(await getSetting("signup_open"))) throw forbidden("Sign-ups are closed right now.");
   const { email, password } = Credentials.parse(req.body);
   const exists = await one("SELECT 1 FROM users WHERE email = $1", [email]);
   if (exists) throw new HttpError(409, "An account with this email already exists. Sign in instead.", "email_taken");

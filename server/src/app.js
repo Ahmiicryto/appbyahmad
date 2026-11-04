@@ -12,6 +12,16 @@ import { goalsRouter } from "./routes/goals.js";
 import { journalRouter } from "./routes/journal.js";
 import { profileRouter } from "./routes/profile.js";
 import { tasksRouter } from "./routes/tasks.js";
+import { adminBillingRouter } from "./routes/adminBilling.js";
+import { adminInsightsRouter } from "./routes/adminInsights.js";
+import { adminActivityRouter, adminErrorsRouter } from "./routes/adminMonitoring.js";
+import { adminNotificationsRouter } from "./routes/adminNotifications.js";
+import { adminSettingsRouter } from "./routes/adminSettings.js";
+import { appConfigRouter } from "./routes/appConfig.js";
+import { billingRouter, stripeWebhook } from "./routes/billing.js";
+import { clientErrorsRouter } from "./routes/clientErrors.js";
+import { notificationsRouter } from "./routes/notifications.js";
+import { maintenanceGate } from "./middleware/maintenance.js";
 
 const adminDist = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "admin", "dist");
 
@@ -21,6 +31,8 @@ export function createApp() {
   app.disable("x-powered-by");
   app.use(helmet({ contentSecurityPolicy: { directives: { "script-src": ["'self'"] } } }));
   app.use(compression());
+  // Stripe signs the raw body, so the webhook must be mounted before the JSON parser.
+  app.post("/api/billing/webhook", express.raw({ type: "application/json", limit: "1mb" }), stripeWebhook);
   app.use(express.json({ limit: "200kb" }));
 
   // The phone app calls the API directly (no browser CORS). Only listed web origins get CORS headers.
@@ -42,11 +54,22 @@ export function createApp() {
   }
 
   app.get("/healthz", (req, res) => res.json({ ok: true }));
+  app.use("/api/app-config", appConfigRouter);
+  app.use("/api/client-errors", clientErrorsRouter);
+  app.use("/api", maintenanceGate);
   app.use("/api/auth", authRouter);
   app.use("/api/profile", profileRouter);
   app.use("/api/goals", goalsRouter);
   app.use("/api/journal", journalRouter);
+  app.use("/api/billing", billingRouter);
+  app.use("/api/notifications", notificationsRouter);
   app.use("/api", tasksRouter);
+  app.use("/api/admin/billing", adminBillingRouter);
+  app.use("/api/admin/insights", adminInsightsRouter);
+  app.use("/api/admin/activity", adminActivityRouter);
+  app.use("/api/admin/errors", adminErrorsRouter);
+  app.use("/api/admin/notifications", adminNotificationsRouter);
+  app.use("/api/admin/settings", adminSettingsRouter);
   app.use("/api/admin", adminRouter);
   app.use("/api", (req, res, next) => next(notFound("No such API route.")));
 

@@ -4,7 +4,12 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { api, getToken, setToken } from "./api.js";
 import { Layout } from "./components/Layout.jsx";
 import { AiUsage } from "./pages/AiUsage.jsx";
+import { Activity } from "./pages/Activity.jsx";
 import { AuditLog } from "./pages/AuditLog.jsx";
+import { Errors } from "./pages/Errors.jsx";
+import { Notifications } from "./pages/Notifications.jsx";
+import { Plans } from "./pages/Plans.jsx";
+import { Settings } from "./pages/Settings.jsx";
 import { Dashboard } from "./pages/Dashboard.jsx";
 import { Login } from "./pages/Login.jsx";
 import { UserDetail } from "./pages/UserDetail.jsx";
@@ -44,6 +49,11 @@ function App() {
           <Route path="/users/:id" element={<UserDetail me={me} />} />
           <Route path="/ai" element={<AiUsage />} />
           <Route path="/audit" element={<AuditLog />} />
+          <Route path="/activity" element={<Activity />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/plans" element={<Plans />} />
+          <Route path="/errors" element={<Errors />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Layout>

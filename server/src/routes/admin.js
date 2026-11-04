@@ -1,11 +1,11 @@
 import { Router } from "express";
 import { z } from "zod";
-import { config } from "../config.js";
 import { one, query } from "../db/pool.js";
 import { requireAdmin, requireAuth } from "../lib/auth.js";
 import { badRequest, notFound } from "../lib/errors.js";
 import { audit } from "../services/audit.js";
 import { aiEnabled } from "../services/plan.js";
+import { getSetting } from "../services/settings.js";
 
 export const adminRouter = Router();
 adminRouter.use(requireAuth, requireAdmin);
@@ -43,7 +43,7 @@ adminRouter.get("/stats", async (req, res) => {
     signups,
     themes,
     categories,
-    system: { aiEnabled: aiEnabled(), aiModel: config.AI_MODEL, signupOpen: config.ALLOW_SIGNUP }
+    system: { aiEnabled: await aiEnabled(), aiModel: await getSetting("ai_model"), signupOpen: await getSetting("signup_open") }
   });
 });
 

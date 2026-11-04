@@ -32,8 +32,13 @@ export function Layout({ me, onSignOut, children }) {
         <nav className="nav" aria-label="Admin">
           <NavLink to="/" end>Overview</NavLink>
           <NavLink to="/users">Users</NavLink>
+          <NavLink to="/activity">Activity</NavLink>
+          <NavLink to="/notifications">Notifications</NavLink>
+          <NavLink to="/plans">Plans &amp; payments</NavLink>
           <NavLink to="/ai">AI usage</NavLink>
+          <NavLink to="/errors">Error logs</NavLink>
           <NavLink to="/audit">Audit log</NavLink>
+          <NavLink to="/settings">Settings</NavLink>
         </nav>
         <div className="side-foot">
           <span className="muted" title={me.email}>{me.email}</span>

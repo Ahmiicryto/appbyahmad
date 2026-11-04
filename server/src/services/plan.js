@@ -1,9 +1,9 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
-import { config } from "../config.js";
 import { query } from "../db/pool.js";
 import { logger } from "../logger.js";
+import { getSetting } from "./settings.js";
 
 // What the model must return. Ranges are enforced after parsing (normalizePlan).
 const PlanSchema = z.object({
@@ -23,13 +23,24 @@ Turn the user's goal into a realistic plan they can start today.
 - For fitness or nutrition goals, keep targets safe and gradual.
 - The summary is one or two encouraging sentences addressed to the user.`;
 
+// The API key and model are live settings: an admin can change them without a redeploy.
 let client;
-const anthropic = () => (client ??= new Anthropic({ apiKey: config.ANTHROPIC_API_KEY }));
+let clientKey;
+async function anthropic() {
+  const key = await getSetting("anthropic_api_key");
+  if (!client || clientKey !== key) {
+    client = new Anthropic({ apiKey: key });
+    clientKey = key;
+  }
+  return client;
+}
 
-export const aiEnabled = () => Boolean(config.ANTHROPIC_API_KEY);
+export async function aiEnabled() {
+  return Boolean((await getSetting("ai_enabled")) && (await getSetting("anthropic_api_key")));
+}
 
 export async function generatePlan({ userId, goal, profile, today }) {
-  if (aiEnabled()) {
+  if (await aiEnabled()) {
     try {
       const plan = await aiPlan({ userId, goal, profile, today });
       if (plan) return { ...normalizePlan(plan, goal, today), source: "ai" };
@@ -59,8 +70,9 @@ async function aiPlan({ userId, goal, profile, today }) {
         }
       : null
   };
-  const response = await anthropic().beta.messages.parse({
-    model: config.AI_MODEL,
+  const model = await getSetting("ai_model");
+  const response = await (await anthropic()).beta.messages.parse({
+    model,
     max_tokens: 16000,
     // If the main model declines, the API re-runs the request on a fallback model.
     betas: ["server-side-fallback-2026-07-01"],
@@ -78,7 +90,7 @@ export async function recordUsage(userId, kind, response) {
   await query("INSERT INTO ai_usage (user_id, kind, model, input_tokens, output_tokens) VALUES ($1, $2, $3, $4, $5)", [
     userId,
     kind,
-    response.model ?? config.AI_MODEL,
+    response.model ?? (await getSetting("ai_model")),
     response.usage?.input_tokens ?? 0,
     response.usage?.output_tokens ?? 0
   ]).catch((err) => logger.warn({ err: err.message }, "failed to record AI usage"));

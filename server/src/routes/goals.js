@@ -1,12 +1,12 @@
 import { Router } from "express";
 import { z } from "zod";
-import { config } from "../config.js";
 import { one, query, tx } from "../db/pool.js";
 import { requireAuth } from "../lib/auth.js";
 import { isYmd, todayIn } from "../lib/dates.js";
 import { badRequest, notFound, paymentRequired } from "../lib/errors.js";
 import { aiEnabled, generatePlan, normalizePlan, templatePlan } from "../services/plan.js";
 import { getProfile } from "./profile.js";
+import { getSetting } from "../services/settings.js";
 
 export const goalsRouter = Router();
 goalsRouter.use(requireAuth);
@@ -62,9 +62,10 @@ goalsRouter.post("/", async (req, res) => {
 
   if (!req.user.isPremium) {
     const { n } = await one("SELECT count(*)::int AS n FROM goals WHERE user_id = $1 AND status = 'active'", [userId]);
-    if (n >= config.FREE_ACTIVE_GOALS) {
+    const limit = await getSetting("free_active_goals");
+    if (n >= limit) {
       throw paymentRequired(
-        `The free plan includes ${config.FREE_ACTIVE_GOALS} active goal. Upgrade to Premium for unlimited goals, or pause a goal first.`,
+        `The free plan includes ${limit} active goal${limit === 1 ? "" : "s"}. Upgrade to Premium for unlimited goals, or pause a goal first.`,
         "goal_limit"
       );
     }
@@ -73,13 +74,13 @@ goalsRouter.post("/", async (req, res) => {
 
   const profile = await getProfile(userId);
   const today = todayIn(profile?.timezone);
-  let useAi = aiEnabled();
+  let useAi = await aiEnabled();
   if (useAi && !req.user.isPremium) {
     const { n } = await one(
       "SELECT count(*)::int AS n FROM ai_usage WHERE user_id = $1 AND kind = 'goal_plan' AND created_at > now() - interval '30 days'",
       [userId]
     );
-    useAi = n < config.FREE_AI_PLANS_PER_MONTH;
+    useAi = n < (await getSetting("free_ai_plans_per_month"));
   }
   const plan = useAi
     ? await generatePlan({ userId, goal: input, profile, today })
@@ -143,7 +144,7 @@ goalsRouter.patch("/:id", async (req, res) => {
   const fields = GoalUpdate.parse(req.body);
   if (fields.status === "active" && goal.status !== "active" && !req.user.isPremium) {
     const { n } = await one("SELECT count(*)::int AS n FROM goals WHERE user_id = $1 AND status = 'active'", [req.user.id]);
-    if (n >= config.FREE_ACTIVE_GOALS) throw paymentRequired("Pause your other goal first, or upgrade to Premium.", "goal_limit");
+    if (n >= (await getSetting("free_active_goals"))) throw paymentRequired("Pause your other goal first, or upgrade to Premium.", "goal_limit");
   }
   if (fields.status === "completed") fields.progress = 100;
   const keys = Object.keys(fields);
