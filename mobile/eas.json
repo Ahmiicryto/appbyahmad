@@ -9,11 +9,11 @@
     },
     "preview": {
       "distribution": "internal",
-      "env": { "EXPO_PUBLIC_API_URL": "https://YOUR-API.onrender.com" }
+      "env": { "EXPO_PUBLIC_API_URL": "https://appbyahmad-production.up.railway.app" }
     },
     "production": {
       "autoIncrement": true,
-      "env": { "EXPO_PUBLIC_API_URL": "https://YOUR-API.onrender.com" }
+      "env": { "EXPO_PUBLIC_API_URL": "https://appbyahmad-production.up.railway.app" }
     }
   },
   "submit": {
