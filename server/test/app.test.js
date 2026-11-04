@@ -206,3 +206,15 @@ describe("units", () => {
     assert.deepEqual(plan.tasks.map((t) => t.due_date), ["2026-11-01", "2026-11-07"]);
   });
 });
+
+describe("admin bootstrap", () => {
+  test("password is only replaced when reset is on", async () => {
+    const { ensureAdmin } = await import("../src/services/bootstrap.js");
+    await ensureAdmin("boot@example.com", "first-password-123", false);
+    await ensureAdmin("boot@example.com", "second-password-456", false);
+    await api().post("/api/auth/login").send({ email: "boot@example.com", password: "first-password-123" }).expect(200);
+    await ensureAdmin("boot@example.com", "second-password-456", true);
+    await api().post("/api/auth/login").send({ email: "boot@example.com", password: "second-password-456" }).expect(200);
+    assert.equal(await ensureAdmin("short@example.com", "too-short", false), null);
+  });
+});

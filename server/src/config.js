@@ -21,6 +21,8 @@ const schema = z.object({
 
   ADMIN_EMAIL: z.string().optional(),
   ADMIN_PASSWORD: z.string().optional(),
+  // Set to true for one deploy to replace the admin's password with ADMIN_PASSWORD, then remove it.
+  ADMIN_RESET_PASSWORD: bool(false),
 
   ANTHROPIC_API_KEY: z.string().optional(),
   AI_MODEL: z.string().default("claude-opus-5-5"),
