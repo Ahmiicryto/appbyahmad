@@ -64,14 +64,21 @@ export default function Settings() {
         </View>
       </Rise>
 
-      {!user?.isPremium && (
-        <Rise delay={180}>
-          <Card highlight={t.ink}>
-            <T v="h3">Premium · $12.99/month</T>
-            <T muted>Unlimited goals, adaptive plans, full Money, Fitness, Career, Future Me and the Assistant. In-app purchase arrives with the store release.</T>
-          </Card>
-        </Rise>
-      )}
+      <Rise delay={180}>
+        <Pressable onPress={() => router.push("/premium")} accessibilityRole="button" accessibilityLabel={user?.isPremium ? "Manage Premium" : "See Premium plans"}>
+          {({ pressed }) => (
+            <Card highlight={t.ink} style={{ opacity: pressed ? 0.85 : 1 }}>
+              <T v="h3">{user?.isPremium ? "Premium" : "Get Premium"}</T>
+              <T muted>
+                {user?.isPremium
+                  ? "Manage your subscription, change plan or update your card."
+                  : "Unlimited goals, adaptive plans, full Money, Fitness, Career, Future Me and the Assistant."}
+              </T>
+              <T color={t.ink} style={{ fontWeight: "800" }}>{user?.isPremium ? "Manage subscription →" : "See plans →"}</T>
+            </Card>
+          )}
+        </Pressable>
+      </Rise>
 
       <Button title="Sign out" variant="secondary" onPress={signOut} />
 
