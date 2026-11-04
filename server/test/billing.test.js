@@ -68,8 +68,8 @@ function subscription({ id = "sub_1", userId, customer = "cus_hook", status = "a
 }
 
 let evN = 0;
-function sendEvent(type, object, { id = `evt_${++evN}`, secret = WHSEC } = {}) {
-  const payload = JSON.stringify({ id, object: "event", type, data: { object } });
+function sendEvent(type, object, { id = `evt_${++evN}`, secret = WHSEC, created = Math.floor(Date.now() / 1000) } = {}) {
+  const payload = JSON.stringify({ id, object: "event", type, created, data: { object } });
   const header = Stripe.webhooks.generateTestHeaderString({ payload, secret });
   return api().post("/api/billing/webhook").set({ "Content-Type": "application/json", "Stripe-Signature": header }).send(payload);
 }
@@ -270,6 +270,36 @@ describe("webhook", () => {
     const again = await sendEvent("customer.subscription.created", sub, { id: "evt_dup" }).expect(200);
     assert.equal(again.body.duplicate, true);
     assert.equal((await userRow(user.id)).plan, "free");
+  });
+
+  test("a late, older event cannot undo a cancellation", async () => {
+    const { user } = await signup();
+    await pool.query("UPDATE users SET stripe_customer_id = 'cus_o' WHERE id = $1", [user.id]);
+    const t = Math.floor(Date.now() / 1000);
+    await sendEvent("customer.subscription.deleted", subscription({ id: "sub_o", customer: "cus_o", status: "canceled" }), { created: t + 10 }).expect(200);
+    await sendEvent("customer.subscription.updated", subscription({ id: "sub_o", customer: "cus_o", status: "active" }), { created: t }).expect(200);
+    assert.equal((await userRow(user.id)).plan, "free");
+  });
+
+  test("a canceled subscription is never reactivated, even by a newer event", async () => {
+    const { user } = await signup();
+    await pool.query("UPDATE users SET stripe_customer_id = 'cus_t' WHERE id = $1", [user.id]);
+    const t = Math.floor(Date.now() / 1000);
+    await sendEvent("customer.subscription.deleted", subscription({ id: "sub_t", customer: "cus_t", status: "canceled" }), { created: t }).expect(200);
+    await sendEvent("customer.subscription.updated", subscription({ id: "sub_t", customer: "cus_t", status: "active" }), { created: t + 5 }).expect(200);
+    assert.equal((await userRow(user.id)).plan, "free");
+  });
+
+  test("a stale renewal event does not move the expiry date back", async () => {
+    const { user } = await signup();
+    await pool.query("UPDATE users SET stripe_customer_id = 'cus_r' WHERE id = $1", [user.id]);
+    const t = Math.floor(Date.now() / 1000);
+    const p1 = t + 30 * 86400;
+    const p2 = t + 60 * 86400;
+    await sendEvent("customer.subscription.updated", subscription({ id: "sub_r", customer: "cus_r", periodEnd: p2 }), { created: t + 10 }).expect(200);
+    await sendEvent("customer.subscription.updated", subscription({ id: "sub_r", customer: "cus_r", periodEnd: p1 }), { created: t }).expect(200);
+    const row = await userRow(user.id);
+    assert.equal(Math.round(new Date(row.plan_expires_at).getTime() / 1000), p2);
   });
 
   test("unhandled event types return 200", async () => {

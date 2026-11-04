@@ -215,7 +215,11 @@ function SecretField({ k, card, settings, label, hint, placeholder }) {
         {s.configured ? (
           <>Configured <span className="num">{s.hint}</span> <span className="muted">({from})</span></>
         ) : (
-          <span className="muted">Not set</span>
+          s.unreadable ? (
+            <span style={{ color: "var(--danger)" }}>Saved, but can't be read (the encryption key changed). Paste it again.</span>
+          ) : (
+            <span className="muted">Not set</span>
+          )
         )}
       </span>
       {d.remove ? (

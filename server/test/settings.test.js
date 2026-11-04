@@ -256,3 +256,37 @@ describe("insights", () => {
     await api().get("/api/admin/insights?days=2").set(admin.auth).expect(400);
   });
 });
+
+describe("review fixes", () => {
+  test("a demoted admin's old token no longer passes maintenance, and the payment return page stays up", async () => {
+    const admin = await adminSession();
+    const other = await signup();
+    await pool.query("UPDATE users SET role = 'admin' WHERE id = $1", [other.user.id]);
+    const login = await api().post("/api/auth/login").send({ email: other.user.email, password: "password123" }).expect(200);
+    const oldAdminAuth = { Authorization: `Bearer ${login.body.token}` };
+    await pool.query("UPDATE users SET role = 'user' WHERE id = $1", [other.user.id]);
+
+    await api().patch("/api/admin/settings").set(admin.auth).send({ maintenance_mode: true }).expect(200);
+    try {
+      await api().get("/api/today").set(oldAdminAuth).expect(503);
+      await api().get("/api/billing/return?status=success").expect(200);
+    } finally {
+      await api().patch("/api/admin/settings").set(admin.auth).send({ maintenance_mode: false }).expect(200);
+    }
+  });
+
+  test("an unreadable saved secret is reported instead of breaking the settings page", async () => {
+    const admin = await adminSession();
+    await pool.query(
+      `INSERT INTO settings (key, value, secret) VALUES ('expo_access_token', '{"enc":"v1:AAAA:AAAA:AAAA"}', true)
+       ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`
+    );
+    invalidateSettings();
+    const r = await api().get("/api/admin/settings").set(admin.auth).expect(200);
+    const all = { ...r.body.settings, ...Object.assign({}, ...Object.values(r.body.groups || {}).map((g) => (Array.isArray(g) ? Object.fromEntries(g.map((x) => [x.key, x])) : g))) };
+    const entry = all.expo_access_token;
+    assert.ok(entry, "expo_access_token listed");
+    assert.equal(entry.unreadable, true);
+    await api().patch("/api/admin/settings").set(admin.auth).send({ expo_access_token: null }).expect(200);
+  });
+});

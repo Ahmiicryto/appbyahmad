@@ -14,6 +14,8 @@ const PUBLIC_PLAN_COLUMNS = "id, name, description, price_cents, currency, inter
 // Statuses that keep Premium on, and statuses that end it.
 export const LIVE_STATUSES = ["active", "trialing", "past_due"];
 export const ENDED_STATUSES = ["canceled", "unpaid", "incomplete_expired"];
+// Final states: Stripe never moves a subscription out of these.
+const TERMINAL_STATUSES = ["canceled", "incomplete_expired"];
 
 const baseUrl = (req) => `${req.protocol}://${req.get("host")}`;
 
@@ -168,14 +170,15 @@ export async function stripeWebhook(req, res) {
 
 async function handleEvent(event) {
   const obj = event.data.object;
+  const eventAt = event.created ?? null;
   switch (event.type) {
     case "checkout.session.completed":
-      await onCheckoutCompleted(obj);
+      await onCheckoutCompleted(obj, eventAt);
       return true;
     case "customer.subscription.created":
     case "customer.subscription.updated":
     case "customer.subscription.deleted":
-      await applySubscription(obj);
+      await applySubscription(obj, { eventAt });
       return true;
     case "invoice.paid":
       await recordInvoice(obj, "succeeded");
@@ -190,7 +193,7 @@ async function handleEvent(event) {
 
 const idOf = (v) => (typeof v === "string" ? v : v?.id ?? null);
 
-async function onCheckoutCompleted(session) {
+async function onCheckoutCompleted(session, eventAt = null) {
   if (session.mode !== "subscription") return;
   const userId = session.client_reference_id || session.metadata?.user_id;
   const customer = idOf(session.customer);
@@ -207,7 +210,7 @@ async function onCheckoutCompleted(session) {
     }
     sub = await stripe.subscriptions.retrieve(sub);
   }
-  await applySubscription(sub, { userId, planId: session.metadata?.plan_id });
+  await applySubscription(sub, { userId, planId: session.metadata?.plan_id, eventAt });
 }
 
 async function userIdFor(customer, hint) {
@@ -242,16 +245,30 @@ export async function applySubscription(sub, hints = {}) {
   const planId = plan?.id ?? null;
   const amount = price?.unit_amount != null ? price.unit_amount * (item?.quantity ?? 1) : null;
 
-  const before = await one("SELECT status FROM subscriptions WHERE provider_subscription_id = $1", [sub.id]);
+  const before = await one(
+    "SELECT status, extract(epoch FROM last_event_at)::bigint AS last_event_at FROM subscriptions WHERE provider_subscription_id = $1",
+    [sub.id]
+  );
+  // Stripe doesn't guarantee delivery order: ignore snapshots older than one already applied,
+  // and never bring a canceled subscription back (Stripe can't reactivate those either).
+  if (before && hints.eventAt && before.last_event_at && Number(before.last_event_at) > hints.eventAt) {
+    logger.info({ sub: sub.id, status: sub.status }, "stripe webhook: skipped an older subscription event");
+    return;
+  }
+  if (before && TERMINAL_STATUSES.includes(before.status) && !TERMINAL_STATUSES.includes(sub.status)) {
+    logger.info({ sub: sub.id, status: sub.status }, "stripe webhook: ignored update to an already-ended subscription");
+    return;
+  }
   await query(
-    `INSERT INTO subscriptions (user_id, plan_id, provider, provider_subscription_id, status, amount_cents, currency, current_period_end, cancel_at_period_end)
-     VALUES ($1, $2, 'stripe', $3, $4, $5, $6, to_timestamp($7), $8)
+    `INSERT INTO subscriptions (user_id, plan_id, provider, provider_subscription_id, status, amount_cents, currency, current_period_end, cancel_at_period_end, last_event_at)
+     VALUES ($1, $2, 'stripe', $3, $4, $5, $6, to_timestamp($7), $8, to_timestamp($9))
      ON CONFLICT (provider_subscription_id) DO UPDATE SET
+       last_event_at = greatest(subscriptions.last_event_at, EXCLUDED.last_event_at),
        user_id = EXCLUDED.user_id, plan_id = coalesce(EXCLUDED.plan_id, subscriptions.plan_id), status = EXCLUDED.status,
        amount_cents = coalesce(EXCLUDED.amount_cents, subscriptions.amount_cents), currency = coalesce(EXCLUDED.currency, subscriptions.currency),
        current_period_end = coalesce(EXCLUDED.current_period_end, subscriptions.current_period_end),
        cancel_at_period_end = EXCLUDED.cancel_at_period_end, updated_at = now()`,
-    [userId, planId, sub.id, sub.status, amount, price?.currency ?? null, periodEnd, Boolean(sub.cancel_at_period_end)]
+    [userId, planId, sub.id, sub.status, amount, price?.currency ?? null, periodEnd, Boolean(sub.cancel_at_period_end), hints.eventAt]
   );
 
   const wasLive = before && LIVE_STATUSES.includes(before.status);

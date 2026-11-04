@@ -2,6 +2,7 @@ import { z } from "zod";
 import { config } from "../config.js";
 import { query } from "../db/pool.js";
 import { decrypt, encrypt } from "../lib/crypto.js";
+import { logger } from "../logger.js";
 
 // Every live setting the admin can change without a redeploy.
 // `env` = fallback from environment variables until an admin saves a value.
@@ -73,9 +74,20 @@ function def(key) {
 export async function getSetting(key) {
   const d = def(key);
   const row = (await load()).get(key);
-  if (row) return d.secret ? decrypt(row.value.enc) : row.value.v;
+  if (row) return d.secret ? readSecret(key, row) : row.value.v;
   if (d.secret) return d.env?.() || null;
   return d.default ? d.default() : null;
+}
+
+// A secret saved under a different ENCRYPTION_KEY can't be read: treat it as not set
+// (the admin page flags it so it can be re-entered) instead of failing every request.
+function readSecret(key, row) {
+  try {
+    return decrypt(row.value.enc);
+  } catch {
+    logger.warn({ key }, "saved secret can't be decrypted (ENCRYPTION_KEY changed?); re-enter it in admin Settings");
+    return null;
+  }
 }
 
 export async function getSettings(keys) {
@@ -109,6 +121,7 @@ export async function settingsForAdmin() {
       const v = await getSetting(key);
       out[key] = {
         group: d.group, label: d.label, secret: true, configured: Boolean(v),
+        unreadable: Boolean(row && !v),
         source: row ? "admin" : v ? "env" : "none",
         hint: v ? `••••${String(v).slice(-4)}` : null,
         updated_at: row?.updated_at ?? null

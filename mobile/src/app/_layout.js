@@ -1,6 +1,7 @@
 import { router, Stack, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import { StyleSheet, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { MaintenanceScreen } from "../components/MaintenanceScreen";
 import { Loading } from "../components/ui";
@@ -45,8 +46,8 @@ function Navigation() {
   }, [app.loading, app.signedIn, app.onboarded, segments]);
 
   if (app.loading) return <Loading />;
-  if (updateRequired) return <MaintenanceScreen updateRequired />;
-  if (config.maintenance?.on && app.user?.role !== "admin") return <MaintenanceScreen />;
+  // Shown on top of the navigator (never instead of it), so redirects keep a mounted router.
+  const blocked = updateRequired ? "update" : config.maintenance?.on && app.user?.role !== "admin" ? "maintenance" : null;
   const t = app.theme;
   return (
     <>
@@ -62,6 +63,11 @@ function Navigation() {
         <Stack.Screen name="notifications" />
         <Stack.Screen name="premium" />
       </Stack>
+      {blocked && (
+        <View style={StyleSheet.absoluteFill}>
+          <MaintenanceScreen updateRequired={blocked === "update"} />
+        </View>
+      )}
     </>
   );
 }

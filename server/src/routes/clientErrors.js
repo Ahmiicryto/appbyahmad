@@ -31,14 +31,13 @@ const ClientError = z.object({
 });
 
 // Best effort: a missing, expired or stale token just means the report is anonymous.
-async function userIdFrom(req) {
+async function userFrom(req) {
   const header = req.get("authorization") || "";
   if (!header.startsWith("Bearer ")) return null;
   try {
     const payload = jwt.verify(header.slice(7), config.JWT_SECRET);
     if (!z.uuid().safeParse(payload?.sub).success) return null;
-    const user = await one("SELECT id FROM users WHERE id = $1", [payload.sub]);
-    return user?.id ?? null;
+    return await one("SELECT id, role FROM users WHERE id = $1", [payload.sub]);
   } catch {
     return null;
   }
@@ -46,16 +45,20 @@ async function userIdFrom(req) {
 
 clientErrorsRouter.post("/", limiter, async (req, res) => {
   const input = ClientError.parse(req.body ?? {});
+  const user = await userFrom(req);
+  // Anonymous reports are kept small so the endpoint can't be used to fill the database.
+  const maxMessage = user ? 2000 : 500;
+  const maxStack = user ? 8000 : 2000;
   const meta = {};
   if (input.platform) meta.platform = input.platform;
   if (input.app_version) meta.app_version = input.app_version;
   await logError({
-    source: input.source === "admin" ? "admin" : "app",
+    source: input.source === "admin" && user?.role === "admin" ? "admin" : "app",
     level: input.level ?? "error",
-    message: input.message,
-    stack: input.stack ?? null,
+    message: input.message.slice(0, maxMessage),
+    stack: input.stack ? input.stack.slice(0, maxStack) : null,
     path: input.path ?? null,
-    userId: await userIdFrom(req),
+    userId: user?.id ?? null,
     meta
   });
   res.status(204).end();

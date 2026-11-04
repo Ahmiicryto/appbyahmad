@@ -35,7 +35,8 @@ journalRouter.post("/", async (req, res) => {
     mood ?? null,
     encrypt(body)
   ]);
-  track(req.user.id, "journal.entry_created", { mood: row.mood ?? null });
+  // No mood, no text: the journal stays private, even from admins.
+  track(req.user.id, "journal.entry_created");
   res.status(201).json({ entry: view(row) });
 });
 

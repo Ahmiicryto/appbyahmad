@@ -270,3 +270,14 @@ describe("admin notifications", () => {
     assert.equal(typeof s.body.users_with_push, "number");
   });
 });
+
+describe("notification links", () => {
+  test("protocol-relative links like //evil.com are rejected", async () => {
+    const { auth } = await adminSession();
+    const r = await api()
+      .post("/api/admin/notifications/send")
+      .set(auth)
+      .send({ title: "Hi", body: "There", url: "//evil.com/x", audience: { type: "all" }, send_push: false });
+    assert.equal(r.status, 400);
+  });
+});

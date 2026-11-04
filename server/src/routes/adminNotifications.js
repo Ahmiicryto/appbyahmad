@@ -30,12 +30,12 @@ adminNotificationsRouter.post("/preview", async (req, res) => {
   res.json(await countAudience(audience));
 });
 
-// In-app route ("/goals", "/journal?x=1") or a full https link.
+// In-app route ("/goals", "/journal?x=1"; not "//host") or a full https link.
 const Url = z
   .string()
   .trim()
   .max(500)
-  .refine((v) => /^\/[A-Za-z0-9\-._~/?#[\]@!$&'()*+,;=%]*$/.test(v) || /^https:\/\/[^\s]+$/i.test(v), {
+  .refine((v) => /^\/(?!\/)[A-Za-z0-9\-._~/?#[\]@!$&'()*+,;=%]*$/.test(v) || /^https:\/\/[^\s]+$/i.test(v), {
     message: 'Use an in-app route like "/goals" or a link that starts with https://'
   });
 

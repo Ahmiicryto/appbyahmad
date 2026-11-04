@@ -65,7 +65,8 @@ describe("activity tracking", () => {
     const byType = Object.fromEntries(events.map((e) => [e.type, e.meta]));
     assert.deepEqual(byType["goal.created"], { category: "fitness", plan_source: "template" });
     assert.deepEqual(byType["task.completed"], { source: "fitness" });
-    assert.deepEqual(byType["journal.entry_created"], { mood: "good" });
+    // The journal is private: not even the mood is visible to admins.
+    assert.deepEqual(byType["journal.entry_created"], {});
     assert.deepEqual(byType["goal.status_changed"], { status: "paused" });
     assert.deepEqual(byType["profile.theme_changed"], { theme: "female" });
 
@@ -150,16 +151,46 @@ describe("error logs", () => {
     await api().post("/api/client-errors").set({ Authorization: "Bearer nope" }).send({ message: "Anon crash" }).expect(204);
     assert.equal((await latest()).user_id, null);
 
+    // Only a signed-in admin can label a report as coming from the admin dashboard.
     await api().post("/api/client-errors").send({ message: "Admin page crashed", source: "admin" }).expect(204);
+    assert.equal((await latest()).source, "app");
+    const admin = await adminSession();
+    await api().post("/api/client-errors").set(admin.auth).send({ message: "Admin page crashed for real", source: "admin" }).expect(204);
     assert.equal((await latest()).source, "admin");
 
     await api().post("/api/client-errors").send({}).expect(400);
     await api().post("/api/client-errors").send({ message: "x", level: "debug" }).expect(400);
 
+    // Anonymous reports are kept small; signed-in reports keep more detail.
     await api().post("/api/client-errors").send({ message: "y".repeat(5000), stack: "s".repeat(20000) }).expect(204);
+    row = await latest();
+    assert.equal(row.message.length, 500);
+    assert.equal(row.stack.length, 2000);
+    await api().post("/api/client-errors").set(alice.auth).send({ message: "z".repeat(5000), stack: "s".repeat(20000) }).expect(204);
     row = await latest();
     assert.equal(row.message.length, 2000);
     assert.equal(row.stack.length, 8000);
+  });
+
+  test("repeats of one error are capped per hour", async () => {
+    const { MAX_PER_FINGERPRINT_PER_HOUR } = await import("../src/services/errorLog.js");
+    for (let i = 0; i < MAX_PER_FINGERPRINT_PER_HOUR + 5; i++) {
+      await api().post("/api/client-errors").send({ message: "Flood crash", stack: "at flood (x.js:1:1)" }).expect(204);
+    }
+    const { rows } = await pool.query("SELECT count(*)::int AS n FROM error_logs WHERE message = 'Flood crash'");
+    assert.equal(rows[0].n, MAX_PER_FINGERPRINT_PER_HOUR);
+  });
+
+  test("old error logs and activity are pruned", async () => {
+    const { pruneOldData } = await import("../src/services/retention.js");
+    await pool.query("INSERT INTO error_logs (source, message, fingerprint, created_at) VALUES ('app', 'ancient', 'f_old', now() - interval '40 days'), ('app', 'recent', 'f_new', now())");
+    await pool.query("INSERT INTO activity_events (type, created_at) VALUES ('ancient.event', now() - interval '400 days'), ('recent.event', now())");
+    const removed = await pruneOldData();
+    assert.ok(removed.errors >= 1 && removed.activity >= 1);
+    const left = await pool.query("SELECT message FROM error_logs WHERE message IN ('ancient', 'recent')");
+    assert.deepEqual(left.rows.map((r) => r.message), ["recent"]);
+    const acts = await pool.query("SELECT type FROM activity_events WHERE type IN ('ancient.event', 'recent.event')");
+    assert.deepEqual(acts.rows.map((r) => r.type), ["recent.event"]);
   });
 
   test("unhandled server errors are logged by the error handler", async () => {

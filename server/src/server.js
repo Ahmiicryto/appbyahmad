@@ -4,6 +4,7 @@ import { migrate } from "./db/migrate.js";
 import { ensureAdmin } from "./services/bootstrap.js";
 import { logger } from "./logger.js";
 import { logError } from "./services/errorLog.js";
+import { scheduleRetention } from "./services/retention.js";
 
 // Last-resort handlers: record the crash for the admin Error logs screen.
 process.on("unhandledRejection", (reason) => {
@@ -40,5 +41,6 @@ try {
   process.exit(1);
 }
 await ensureAdmin();
+scheduleRetention();
 
 createApp().listen(config.PORT, () => logger.info({ port: config.PORT }, "server listening"));
