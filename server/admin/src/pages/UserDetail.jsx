@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, fmt } from "../api.js";
 import { StatTile } from "../components/charts.jsx";
+import { UserActivity } from "../components/UserActivity.jsx";
 import { useApi } from "../useApi.js";
 
 export function UserDetail({ me }) {
@@ -116,6 +117,8 @@ export function UserDetail({ me }) {
           {!goals.length && <p className="empty">No goals yet.</p>}
         </div>
       </section>
+
+      <UserActivity userId={u.id} />
     </>
   );
 }

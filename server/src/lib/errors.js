@@ -1,5 +1,6 @@
 import { ZodError } from "zod";
 import { logger } from "../logger.js";
+import { logError } from "../services/errorLog.js";
 
 export class HttpError extends Error {
   constructor(status, message, code) {
@@ -30,5 +31,12 @@ export function errorHandler(err, req, res, next) {
     return res.status(400).json({ error: { code: "bad_json", message: "Request body is not valid JSON." } });
   }
   logger.error({ err, path: req.path }, "unhandled error");
+  logError({
+    source: "server",
+    message: err?.message || String(err),
+    stack: err?.stack,
+    path: `${req.method} ${req.originalUrl}`.slice(0, 500),
+    userId: req.user?.id ?? null
+  });
   res.status(500).json({ error: { code: "server_error", message: "Something went wrong. Try again." } });
 }

@@ -6,6 +6,7 @@ import { isYmd, todayIn } from "../lib/dates.js";
 import { badRequest, notFound } from "../lib/errors.js";
 import { lifeScore } from "../services/lifeScore.js";
 import { getProfile } from "./profile.js";
+import { track } from "../services/activity.js";
 
 export const tasksRouter = Router();
 tasksRouter.use(requireAuth);
@@ -65,6 +66,7 @@ tasksRouter.post("/tasks", async (req, res) => {
       input.due_time ?? null
     ]
   );
+  track(req.user.id, "task.created", { source: task.source });
   res.status(201).json({ task });
 });
 
@@ -83,6 +85,7 @@ tasksRouter.patch("/tasks/:id", async (req, res) => {
   if (!sets.length) throw badRequest("Nothing to update.");
   const task = await one(`UPDATE tasks SET ${sets.join(", ")} WHERE id = $1 AND user_id = $2 RETURNING *`, params);
   if (!task) throw notFound("Task not found.");
+  if (input.done === true) track(req.user.id, "task.completed", { source: task.source });
   res.json({ task });
 });
 

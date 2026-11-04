@@ -6,6 +6,7 @@ import { one, query } from "../db/pool.js";
 import { checkPassword, hashPassword, publicUser, requireAuth, signToken } from "../lib/auth.js";
 import { badRequest, forbidden, HttpError } from "../lib/errors.js";
 import { audit } from "../services/audit.js";
+import { track } from "../services/activity.js";
 import { getProfile } from "./profile.js";
 import { getSetting } from "../services/settings.js";
 
@@ -34,6 +35,7 @@ authRouter.post("/register", limiter, async (req, res) => {
     [email, await hashPassword(password)]
   );
   await query("INSERT INTO profiles (user_id) VALUES ($1)", [user.id]);
+  track(user.id, "auth.registered");
   res.status(201).json({ token: signToken(user), user: publicUser(user), profile: await getProfile(user.id) });
 });
 
@@ -45,6 +47,7 @@ authRouter.post("/login", limiter, async (req, res) => {
   }
   if (user.status === "suspended") throw forbidden("Your account is suspended. Contact support.");
   await query("UPDATE users SET last_seen_at = now() WHERE id = $1", [user.id]);
+  track(user.id, "auth.signed_in");
   res.json({ token: signToken(user), user: publicUser(user), profile: await getProfile(user.id) });
 });
 

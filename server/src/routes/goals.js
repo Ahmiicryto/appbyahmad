@@ -7,6 +7,7 @@ import { badRequest, notFound, paymentRequired } from "../lib/errors.js";
 import { aiEnabled, generatePlan, normalizePlan, templatePlan } from "../services/plan.js";
 import { getProfile } from "./profile.js";
 import { getSetting } from "../services/settings.js";
+import { track } from "../services/activity.js";
 
 export const goalsRouter = Router();
 goalsRouter.use(requireAuth);
@@ -123,6 +124,7 @@ goalsRouter.post("/", async (req, res) => {
     }
     return g;
   });
+  track(userId, "goal.created", { category: goal.category, plan_source: goal.plan_source });
   res.status(201).json(await goalDetail(userId, goal.id));
 });
 
@@ -153,6 +155,7 @@ goalsRouter.patch("/:id", async (req, res) => {
       `UPDATE goals SET ${keys.map((k, i) => `${k} = $${i + 2}`).join(", ")}, updated_at = now() WHERE id = $1`,
       [goal.id, ...keys.map((k) => fields[k])]
     );
+    if (fields.status && fields.status !== goal.status) track(req.user.id, "goal.status_changed", { status: fields.status });
   }
   res.json(await goalDetail(req.user.id, goal.id));
 });
@@ -167,6 +170,7 @@ goalsRouter.patch("/:id/milestones/:mid", async (req, res) => {
     status
   ]);
   if (!m) throw notFound("Milestone not found.");
+  track(req.user.id, "milestone.updated", { status });
   // Progress follows milestones unless the user sets it by hand.
   await query(
     `UPDATE goals SET progress = (
@@ -181,5 +185,6 @@ goalsRouter.patch("/:id/milestones/:mid", async (req, res) => {
 goalsRouter.delete("/:id", async (req, res) => {
   const goal = await loadGoal(req.user.id, req.params.id);
   await query("DELETE FROM goals WHERE id = $1", [goal.id]);
+  track(req.user.id, "goal.deleted", { category: goal.category });
   res.status(204).end();
 });

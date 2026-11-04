@@ -4,6 +4,7 @@ import { one, query } from "../db/pool.js";
 import { requireAuth } from "../lib/auth.js";
 import { decrypt, encrypt } from "../lib/crypto.js";
 import { notFound } from "../lib/errors.js";
+import { track } from "../services/activity.js";
 
 // Private by design: entries are encrypted at rest and never exposed to the admin dashboard.
 export const journalRouter = Router();
@@ -34,6 +35,7 @@ journalRouter.post("/", async (req, res) => {
     mood ?? null,
     encrypt(body)
   ]);
+  track(req.user.id, "journal.entry_created", { mood: row.mood ?? null });
   res.status(201).json({ entry: view(row) });
 });
 

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { one } from "../db/pool.js";
 import { requireAuth } from "../lib/auth.js";
 import { isYmd } from "../lib/dates.js";
+import { track } from "../services/activity.js";
 
 export const profileRouter = Router();
 profileRouter.use(requireAuth);
@@ -51,10 +52,13 @@ profileRouter.patch("/", async (req, res) => {
   const sets = keys.map((k, i) => `${k} = $${i + 2}`);
   if (complete_onboarding) sets.push("onboarded_at = coalesce(onboarded_at, now())");
   if (sets.length) {
+    const before = await one("SELECT theme, onboarded_at FROM profiles WHERE user_id = $1", [req.user.id]);
     await one(`UPDATE profiles SET ${sets.join(", ")}, updated_at = now() WHERE user_id = $1`, [
       req.user.id,
       ...keys.map((k) => fields[k])
     ]);
+    if (complete_onboarding && before && !before.onboarded_at) track(req.user.id, "onboarding.completed");
+    if (fields.theme && before && fields.theme !== before.theme) track(req.user.id, "profile.theme_changed", { theme: fields.theme });
   }
   res.json({ profile: await getProfile(req.user.id) });
 });
