@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { fmt } from "../api.js";
 import { Breakdown, DailyBars, StatTile } from "../components/charts.jsx";
 import { useApi } from "../useApi.js";
@@ -20,7 +21,7 @@ export function Dashboard() {
           <p className="muted" style={{ margin: "4px 0 0" }}>How the app is doing right now.</p>
         </div>
         {!data.system.aiEnabled && (
-          <div className="notice">AI is off. Plans use the built-in template until ANTHROPIC_API_KEY is set.</div>
+          <div className="notice">AI is off. Plans use the built-in template. <Link to="/settings">Add an API key in Settings</Link>.</div>
         )}
       </div>
 
@@ -51,6 +52,8 @@ export function Dashboard() {
         </div>
       </section>
 
+      <Insights />
+
       <p className="muted" style={{ fontSize: 12 }}>
         AI model: {data.system.aiModel} · Sign-ups {data.system.signupOpen ? "open" : "closed"}
         {suspendedNote(t.suspended)}
@@ -61,3 +64,50 @@ export function Dashboard() {
 
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 const suspendedNote = (n) => (n ? ` · ${n} suspended account${n === 1 ? "" : "s"}` : "");
+
+const money = (cents) =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: (cents ?? 0) % 100 ? 2 : 0 }).format((cents ?? 0) / 100);
+const percent = (n) => `${Math.round((n ?? 0) * 10) / 10}%`;
+
+// Growth, money and health over the last 30 days.
+function Insights() {
+  const { data, error, loading } = useApi("/admin/insights?days=30");
+  if (error) return <div className="error">Couldn't load growth numbers. {error.message}</div>;
+  if (loading && !data) return <p className="muted">Loading growth numbers…</p>;
+  const dau = data.dau;
+  const avgDau = dau.length ? Math.round(dau.reduce((s, d) => s + d.count, 0) / dau.length) : 0;
+  const r = data.retention;
+
+  return (
+    <>
+      <h2 style={{ margin: "12px 0 0", fontSize: 18 }}>Growth & health · last 30 days</h2>
+      <section className="grid tiles" aria-label="Growth and health">
+        <StatTile label="MRR" value={money(data.mrrCents)} sub={`${money(data.revenueCents)} collected in 30 days`} />
+        <StatTile label="Premium conversion" value={percent(data.premiumConversion)} sub="of all users" />
+        <StatTile label="Retention (days 7–30)" value={r.cohort ? percent(r.pct) : "—"} sub={r.cohort ? `${fmt.num(r.retained)} of ${fmt.num(r.cohort)} came back` : "Not enough sign-ups yet"} />
+        <div className="card tile">
+          <div className="label">Open errors (7 days)</div>
+          <div className="value num">{fmt.num(data.openErrors)}</div>
+          <div className="sub"><Link to="/errors">{data.openErrors ? "Review errors" : "View error log"}</Link></div>
+        </div>
+        <StatTile label="Notifications sent" value={fmt.num(data.notificationsSent30d)} sub="in-app, 30 days" />
+        <StatTile label="Goals completed" value={fmt.num(data.goalsCompleted30d)} sub="30 days" />
+      </section>
+
+      <section className="grid two">
+        <div className="card">
+          <h2>Daily active users <span className="muted num" style={{ fontWeight: 600 }}>(avg {fmt.num(avgDau)})</span></h2>
+          <DailyBars data={dau} valueKey="count" label="Active users" />
+          {data.dauSource === "last_seen" && (
+            <p className="muted" style={{ fontSize: 12, margin: "8px 0 0" }}>Based on last sign-in until activity tracking has data.</p>
+          )}
+        </div>
+        <div className="card">
+          <h2>Revenue per day <span className="muted num" style={{ fontWeight: 600 }}>({money(data.revenueCents)})</span></h2>
+          {/* Plotted in dollars so the axis reads $ amounts, not cents. */}
+          <DailyBars data={data.revenue.map((d) => ({ day: d.day, dollars: d.cents / 100 }))} valueKey="dollars" label="Revenue" format={(v) => money(Math.round(v * 100))} />
+        </div>
+      </section>
+    </>
+  );
+}
