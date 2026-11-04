@@ -1,7 +1,9 @@
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
+import { AnnouncementBanner } from "../../components/AnnouncementBanner";
 import { GearIcon } from "../../components/icons";
+import { NotificationBell } from "../../components/NotificationBell";
 import { TaskRow } from "../../components/TaskRow";
 import { Bar, Button, Card, ErrorBox, Field, Loading, Ring, Rise, Screen, T } from "../../components/ui";
 import { api } from "../../lib/api";
@@ -53,13 +55,16 @@ export default function Today() {
           <T v="h3" color={t.ink}>{(profile?.name || "?").charAt(0).toUpperCase()}</T>
         </View>
         <View style={{ flex: 1 }}>
-          <T v="h2">{greeting()}{profile?.name ? `, ${profile.name}` : ""}</T>
-          <T v="small" muted>{date} · Here's your day.</T>
+          <T v="h2" numberOfLines={1} adjustsFontSizeToFit style={{ fontSize: 18 }}>{greeting()}{profile?.name ? `, ${profile.name}` : ""}</T>
+          <T v="small" muted numberOfLines={1}>{date} · Here's your day.</T>
         </View>
+        <NotificationBell />
         <Pressable onPress={() => router.push("/settings")} accessibilityRole="button" accessibilityLabel="Settings" style={{ width: 44, height: 44, borderRadius: 14, borderWidth: 1, borderColor: t.line, backgroundColor: t.s1, alignItems: "center", justifyContent: "center" }}>
           <GearIcon color={t.text} />
         </Pressable>
       </Rise>
+
+      <AnnouncementBanner />
 
       <Rise delay={80}>
         <Card style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>

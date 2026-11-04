@@ -23,7 +23,7 @@ const money = (cents, currency = "usd") => {
 
 export default function Premium() {
   const t = useTheme();
-  const { user } = useApp();
+  const { user, refreshUser } = useApp();
   const { data, error, loading, reload } = useLoad("/billing/plans");
   // AppContext has no refresh, so the screen keeps its own copy of the premium flag after checkout.
   const [premium, setPremium] = useState(Boolean(user?.isPremium));
@@ -41,8 +41,9 @@ export default function Premium() {
 
   async function refreshMe() {
     try {
-      const me = await api("/auth/me");
-      setPremium(Boolean(me.user?.isPremium));
+      // Updates the whole app (plan, limits), not just this screen.
+      const me = await refreshUser();
+      setPremium(Boolean(me?.isPremium));
     } catch {
       // Not critical: the message below still tells them what happens next.
     }

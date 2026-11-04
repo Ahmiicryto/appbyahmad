@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { THEMES } from "../theme/themes";
 import { api, setAuthToken, setUnauthorizedHandler } from "./api";
+import { setErrorReportingToken } from "./errorReporting";
+import { unregisterPushAsync } from "./push";
 import { getItem, setItem } from "./storage";
 
 const TOKEN_KEY = "aba_token";
@@ -12,7 +14,10 @@ export function AppProvider({ children }) {
   const [previewTheme, setPreviewTheme] = useState(null);
 
   const signOut = useCallback(async () => {
+    // Stop push to this device before the token that authorizes the call is cleared.
+    await unregisterPushAsync().catch(() => {});
     setAuthToken(null);
+    setErrorReportingToken(null);
     await setItem(TOKEN_KEY, null);
     setState({ loading: false, token: null, user: null, profile: null });
   }, []);
@@ -23,6 +28,7 @@ export function AppProvider({ children }) {
       const token = await getItem(TOKEN_KEY);
       if (!token) return setState((s) => ({ ...s, loading: false }));
       setAuthToken(token);
+      setErrorReportingToken(token);
       try {
         const me = await api("/auth/me");
         setState({ loading: false, token, user: me.user, profile: me.profile });
@@ -37,8 +43,16 @@ export function AppProvider({ children }) {
   const signIn = useCallback(async (mode, email, password) => {
     const r = await api(mode === "register" ? "/auth/register" : "/auth/login", { method: "POST", body: { email, password } });
     setAuthToken(r.token);
+    setErrorReportingToken(r.token);
     await setItem(TOKEN_KEY, r.token);
     setState({ loading: false, token: r.token, user: r.user, profile: r.profile });
+  }, []);
+
+  // Re-reads plan/role, e.g. after a payment.
+  const refreshUser = useCallback(async () => {
+    const me = await api("/auth/me");
+    setState((s) => ({ ...s, user: me.user, profile: me.profile }));
+    return me.user;
   }, []);
 
   const updateProfile = useCallback(async (fields) => {
@@ -58,9 +72,10 @@ export function AppProvider({ children }) {
       setPreviewTheme,
       signIn,
       signOut,
-      updateProfile
+      updateProfile,
+      refreshUser
     };
-  }, [state, previewTheme, signIn, signOut, updateProfile]);
+  }, [state, previewTheme, signIn, signOut, updateProfile, refreshUser]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

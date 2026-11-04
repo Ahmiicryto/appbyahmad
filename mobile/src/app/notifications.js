@@ -140,6 +140,7 @@ function PrefsCard() {
             onValueChange={(v) => toggle(p.key, v)}
             trackColor={{ false: t.track, true: t.acc }}
             thumbColor={t.dark ? t.text : undefined}
+            activeThumbColor={t.dark ? t.text : "#FFFFFF"}
             ios_backgroundColor={t.track}
             accessibilityLabel={p.label}
           />

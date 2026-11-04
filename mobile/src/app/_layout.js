@@ -2,16 +2,26 @@ import { router, Stack, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { MaintenanceScreen } from "../components/MaintenanceScreen";
 import { Loading } from "../components/ui";
 import { AppProvider, useApp } from "../lib/AppContext";
+import { AppConfigProvider, useAppConfig } from "../lib/appConfig";
+import { AppErrorBoundary, installGlobalErrorHandler } from "../lib/errorReporting";
+import { usePushRegistration } from "../lib/push";
+
+installGlobalErrorHandler();
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
-      <AppProvider>
-        <Navigation />
-      </AppProvider>
-    </SafeAreaProvider>
+    <AppErrorBoundary>
+      <SafeAreaProvider>
+        <AppProvider>
+          <AppConfigProvider>
+            <Navigation />
+          </AppConfigProvider>
+        </AppProvider>
+      </SafeAreaProvider>
+    </AppErrorBoundary>
   );
 }
 
@@ -19,6 +29,8 @@ export default function RootLayout() {
 function Navigation() {
   const app = useApp();
   const segments = useSegments();
+  const { config, updateRequired } = useAppConfig();
+  usePushRegistration(app.signedIn && app.onboarded);
 
   useEffect(() => {
     if (app.loading) return;
@@ -33,6 +45,8 @@ function Navigation() {
   }, [app.loading, app.signedIn, app.onboarded, segments]);
 
   if (app.loading) return <Loading />;
+  if (updateRequired) return <MaintenanceScreen updateRequired />;
+  if (config.maintenance?.on && app.user?.role !== "admin") return <MaintenanceScreen />;
   const t = app.theme;
   return (
     <>
@@ -45,6 +59,8 @@ function Navigation() {
         <Stack.Screen name="goal/[id]" />
         <Stack.Screen name="journal" />
         <Stack.Screen name="settings" />
+        <Stack.Screen name="notifications" />
+        <Stack.Screen name="premium" />
       </Stack>
     </>
   );
