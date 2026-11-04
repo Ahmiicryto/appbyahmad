@@ -32,6 +32,10 @@ const schema = z.object({
 export const config = schema.parse(process.env);
 export const isProd = config.NODE_ENV === "production";
 
-if (isProd && config.JWT_SECRET === "dev-jwt-secret-change-me") {
-  throw new Error("JWT_SECRET must be set in production");
+// Fail at deploy time with a clear message instead of on the first sign-in or journal entry.
+if (isProd && (config.JWT_SECRET === "dev-jwt-secret-change-me" || config.JWT_SECRET.length < 32)) {
+  throw new Error("JWT_SECRET must be set to a random string of at least 32 characters");
+}
+if (isProd && (!config.ENCRYPTION_KEY || config.ENCRYPTION_KEY.length < 32)) {
+  throw new Error("ENCRYPTION_KEY must be set to a random string of at least 32 characters");
 }

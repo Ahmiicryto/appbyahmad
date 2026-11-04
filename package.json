@@ -1,0 +1,13 @@
+{
+  "name": "appbyahmad",
+  "private": true,
+  "description": "Lets hosting platforms (Railway, Render, Koyeb...) build and start the server from the repository root with no extra settings.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "npm --prefix server ci --include=dev && npm --prefix server run build",
+    "start": "npm --prefix server start",
+    "test": "npm --prefix server test"
+  }
+}

@@ -2,14 +2,19 @@ import crypto from "node:crypto";
 import { config, isProd } from "../config.js";
 
 // AES-256-GCM for private text (journal entries). Format: v1:<iv>:<tag>:<ciphertext>, all base64.
+// ENCRYPTION_KEY is either 32 bytes in base64, or any passphrase of 32+ characters (hashed to 32 bytes).
+let cachedKey;
 function key() {
-  if (config.ENCRYPTION_KEY) {
-    const k = Buffer.from(config.ENCRYPTION_KEY, "base64");
-    if (k.length !== 32) throw new Error("ENCRYPTION_KEY must be 32 bytes, base64-encoded");
-    return k;
+  if (cachedKey) return cachedKey;
+  const raw = config.ENCRYPTION_KEY;
+  if (raw) {
+    const b = Buffer.from(raw, "base64");
+    cachedKey = /^[A-Za-z0-9+/]{43}=$/.test(raw) && b.length === 32 ? b : crypto.createHash("sha256").update(raw).digest();
+  } else {
+    if (isProd) throw new Error("ENCRYPTION_KEY must be set in production");
+    cachedKey = crypto.createHash("sha256").update("dev-only-encryption-key").digest();
   }
-  if (isProd) throw new Error("ENCRYPTION_KEY must be set in production");
-  return crypto.createHash("sha256").update("dev-only-encryption-key").digest();
+  return cachedKey;
 }
 
 export function encrypt(plain) {

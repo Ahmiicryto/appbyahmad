@@ -94,7 +94,23 @@ Use your computer's local IP (not `localhost`) so the phone can reach the API.
 
 ---
 
-## Put it online (Render)
+## Put it online (Railway, recommended)
+
+1. Sign up at railway.com with GitHub.
+2. **New Project → Deploy from GitHub repo →** `appbyahmad`. Leave Root Directory empty; the
+   `package.json` at the top builds and starts the server.
+3. In the project: **New → Database → PostgreSQL**.
+4. Open the app service → **Variables** and add:
+   - `DATABASE_URL` = `${{Postgres.DATABASE_URL}}`
+   - `NODE_ENV` = `production`
+   - `JWT_SECRET` = any random text, 32+ characters
+   - `ENCRYPTION_KEY` = a different random text, 32+ characters (never change it once real users exist)
+   - `ADMIN_EMAIL`, `ADMIN_PASSWORD` (12+ characters)
+   - optional: `ANTHROPIC_API_KEY`
+5. App service → **Settings → Networking → Generate Domain**.
+6. Open `https://<your-domain>/admin` and sign in.
+
+## Put it online (Render, alternative)
 
 1. This repository is already on GitHub.
 2. Render → **New → Blueprint** → pick the repository. It creates the API + admin and the database.
