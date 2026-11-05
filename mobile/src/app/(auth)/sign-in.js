@@ -1,70 +1,77 @@
-import { router, useLocalSearchParams } from "expo-router";
+import { router } from "expo-router";
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable } from "react-native";
-import { Button, Field, Rise, Screen, T } from "../../components/ui";
+import { Alert, KeyboardAvoidingView, Linking, Platform, Pressable, View } from "react-native";
+import { Button, Emoji, Glass, Header, Rise, Screen, T, Toggle } from "../../components/ui";
+import { EmailField, PasswordField } from "../../components/AuthFields";
 import { useApp, useTheme } from "../../lib/AppContext";
+import { useAppConfig } from "../../lib/appConfig";
 
 export default function SignIn() {
-  const { mode: initial } = useLocalSearchParams();
-  const [mode, setMode] = useState(initial === "login" ? "login" : "register");
+  const t = useTheme();
+  const { signIn } = useApp();
+  const { config } = useAppConfig();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(true);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
-  const { signIn } = useApp();
-  const t = useTheme();
-  const register = mode === "register";
 
   async function submit() {
+    if (!email.trim() || !password) return;
     setBusy(true);
     setError(null);
     try {
-      await signIn(mode, email.trim(), password);
+      await signIn("login", email.trim(), password, { remember });
     } catch (err) {
       setError(err);
       setBusy(false);
     }
   }
 
+  function forgot() {
+    const support = config.legal?.supportEmail;
+    const msg = support
+      ? `Email ${support} from the address you signed up with and we'll help you get back in.`
+      : "Contact support from the address you signed up with and we'll help you get back in.";
+    if (Platform.OS === "web") return window.alert(msg);
+    Alert.alert("Forgot your password?", msg, support
+      ? [{ text: "Cancel", style: "cancel" }, { text: "Email support", onPress: () => Linking.openURL(`mailto:${support}?subject=${encodeURIComponent("Reset my password")}`) }]
+      : [{ text: "OK" }]);
+  }
+
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <Screen>
-        <Pressable onPress={() => router.back()} accessibilityRole="button" style={{ minHeight: 44, justifyContent: "center" }}>
-          <T color={t.ink} style={{ fontWeight: "700" }}>← Back</T>
-        </Pressable>
+        <Header title="" />
         <Rise style={{ gap: 6 }}>
-          <T v="h1">{register ? "Create your account" : "Welcome back"}</T>
-          <T muted>{register ? "It takes less than a minute." : "Sign in to see your day."}</T>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <T v="h1">Welcome back</T>
+            <Emoji e="👋" size={26} anim="wave" />
+          </View>
+          <T muted>Sign in to see your day.</T>
         </Rise>
-        <Rise delay={100} style={{ gap: 14 }}>
-          <Field
-            label="Email"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            autoComplete="email"
-            keyboardType="email-address"
-            textContentType="emailAddress"
-            error={error?.fields?.email?.[0]}
-          />
-          <Field
-            label="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            autoComplete={register ? "new-password" : "current-password"}
-            textContentType={register ? "newPassword" : "password"}
-            placeholder={register ? "At least 8 characters" : undefined}
-            error={error?.fields?.password?.[0]}
-            onSubmitEditing={submit}
-          />
-          {error && !error.fields ? <T color={t.bad} style={{ fontWeight: "700" }}>{error.message}</T> : null}
-          <Button title={register ? "Create account" : "Sign in"} onPress={submit} busy={busy} disabled={!email || !password} />
-          <Pressable onPress={() => setMode(register ? "login" : "register")} accessibilityRole="button" style={{ minHeight: 44, alignItems: "center", justifyContent: "center" }}>
-            <T v="small" muted>
-              {register ? "Already have an account? " : "New here? "}
-              <T v="small" color={t.ink} style={{ fontWeight: "800" }}>{register ? "Sign in" : "Create an account"}</T>
-            </T>
+
+        <Rise delay={80} style={{ gap: 14 }}>
+          <EmailField value={email} onChangeText={setEmail} error={error?.fields?.email?.[0]} />
+          <PasswordField value={password} onChangeText={setPassword} error={error?.fields?.password?.[0]} onSubmitEditing={submit} />
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+            <Pressable onPress={forgot} accessibilityRole="button" hitSlop={8}>
+              <T v="small" color={t.ink} style={{ fontWeight: "800" }}>Forgot password?</T>
+            </Pressable>
+          </View>
+
+          <Glass radius={18} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14 }}>
+            <View style={{ flex: 1 }}>
+              <T style={{ fontWeight: "800" }}>Keep me signed in</T>
+              <T v="small" muted>Turn off on shared phones.</T>
+            </View>
+            <Toggle value={remember} onChange={setRemember} label="Keep me signed in" />
+          </Glass>
+
+          {error && !error.fields ? <T color={t.bad} style={{ fontWeight: "700" }}>😕 {error.message}</T> : null}
+          <Button title="Sign in" onPress={submit} busy={busy} disabled={!email.trim() || !password} />
+          <Pressable onPress={() => router.replace("/sign-up")} accessibilityRole="button" style={{ minHeight: 44, alignItems: "center", justifyContent: "center" }}>
+            <T v="small" muted>New here? <T v="small" color={t.ink} style={{ fontWeight: "800" }}>Create an account</T></T>
           </Pressable>
         </Rise>
       </Screen>

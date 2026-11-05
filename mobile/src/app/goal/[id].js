@@ -3,12 +3,12 @@ import { useState } from "react";
 import { Pressable, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { TaskRow } from "../../components/TaskRow";
-import { Bar, Button, Card, ErrorBox, Loading, Overline, Rise, Screen, T } from "../../components/ui";
+import { Bar, Button, Card, ErrorBox, Header, Loading, Overline, Rise, Screen, T } from "../../components/ui";
 import { api } from "../../lib/api";
 import { useTheme } from "../../lib/AppContext";
 import { confirm } from "../../lib/confirm";
 import { useLoad } from "../../lib/useLoad";
-import { areaColor } from "../../theme/themes";
+import { areaColor, areaEmoji } from "../../theme/themes";
 
 const NEXT = { upcoming: "in_progress", in_progress: "done", done: "upcoming" };
 const LABEL = { upcoming: "Upcoming", in_progress: "In progress", done: "Done" };
@@ -47,13 +47,11 @@ export default function GoalDetail() {
 
   return (
     <Screen>
-      <Pressable onPress={() => router.back()} accessibilityRole="button" style={{ minHeight: 44, justifyContent: "center" }}>
-        <T color={t.ink} style={{ fontWeight: "700" }}>← Goals</T>
-      </Pressable>
+      <Header title="Goal" />
 
       <Rise>
         <Card>
-          <Overline color={color}>{goal.category}</Overline>
+          <Overline color={color}>{areaEmoji(goal.category)} {goal.category}</Overline>
           <T v="h2">{goal.title}</T>
           {goal.target ? <T v="small" muted>Target: {goal.target}</T> : null}
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>

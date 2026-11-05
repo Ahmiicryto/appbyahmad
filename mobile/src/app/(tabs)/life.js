@@ -12,13 +12,13 @@ export default function Life() {
   const { config } = useAppConfig();
   const features = config.features ?? {};
   const areas = [
-    { key: "journal", title: "Journal", sub: "Private place for your feelings", color: t.ink },
-    { key: "money", title: "Money", sub: "Income, spending, savings goals", color: t.c2 },
-    { key: "fitness", title: "Fitness", sub: "Your weekly workout plan", color: t.c3 },
-    { key: "nutrition", title: "Nutrition", sub: "Calories, macros and meals", color: t.c3 },
-    { key: "career", title: "Career", sub: "Roadmap, résumé, job tracker", color: t.c4 },
-    { key: "future_me", title: "Future Me", sub: "The person you want to become", color: t.ink },
-    { key: "decisions", title: "Decisions", sub: "Compare options with your data", color: t.c4 }
+    { key: "journal", e: "📓", title: "Journal", sub: "Private place for your feelings", color: t.ink },
+    { key: "money", e: "💰", title: "Money", sub: "Income, spending, savings goals", color: t.c2 },
+    { key: "fitness", e: "💪", title: "Fitness", sub: "Your weekly workout plan", color: t.c3 },
+    { key: "nutrition", e: "🥗", title: "Nutrition", sub: "Calories, macros and meals", color: t.c3 },
+    { key: "career", e: "💼", title: "Career", sub: "Roadmap, résumé, job tracker", color: t.c4 },
+    { key: "future_me", e: "✨", title: "Future Me", sub: "The person you want to become", color: t.ink },
+    { key: "decisions", e: "⚖️", title: "Decisions", sub: "Compare options with your data", color: t.c4 }
   ].map((a) => {
     const on = Boolean(features[a.key]);
     const href = on ? ROUTES[a.key] : undefined;
@@ -26,7 +26,7 @@ export default function Life() {
   });
 
   return (
-    <Screen>
+    <Screen tabBar>
       <Rise style={{ gap: 4 }}>
         <T v="h1">Life</T>
         <T v="small" muted>Every area of your life, connected to your daily plan.</T>
@@ -41,7 +41,7 @@ export default function Life() {
               accessibilityLabel={a.href ? a.title : `${a.title}, ${a.tag === "AVAILABLE SOON" ? "available soon" : "coming next"}`}
             >
               <Card style={{ minHeight: 120, opacity: a.href ? 1 : a.tag === "AVAILABLE SOON" ? 0.85 : 0.65 }}>
-                <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: a.color }} />
+                <View style={{ width: 40, height: 40, borderRadius: 13, backgroundColor: t.soft, alignItems: "center", justifyContent: "center" }}><T style={{ fontSize: 20 }}>{a.e}</T></View>
                 <T v="h3">{a.title}</T>
                 <T v="small" muted>{a.sub}</T>
                 {a.tag && <T v="tiny" color={a.tag === "AVAILABLE SOON" ? t.ink : undefined} muted={a.tag !== "AVAILABLE SOON"}>{a.tag}</T>}

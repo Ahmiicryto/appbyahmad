@@ -12,7 +12,9 @@ export const DEFAULT_CONFIG = {
   features: { journal: true, money: false, fitness: false, nutrition: false, career: false, future_me: false, decisions: false, assistant: false },
   minAppVersion: "0.0.0",
   signupOpen: true,
-  plansAvailable: 0
+  plansAvailable: 0,
+  purchases: { enabled: false, iosKey: null, androidKey: null, entitlement: "premium" },
+  legal: { termsUrl: null, privacyUrl: null, supportEmail: null }
 };
 
 export const APP_VERSION = Constants.expoConfig?.version ?? "0.0.0";
@@ -34,7 +36,9 @@ function merge(remote) {
     ...DEFAULT_CONFIG,
     ...remote,
     maintenance: { ...DEFAULT_CONFIG.maintenance, ...(remote?.maintenance ?? {}) },
-    features: { ...DEFAULT_CONFIG.features, ...(remote?.features ?? {}) }
+    features: { ...DEFAULT_CONFIG.features, ...(remote?.features ?? {}) },
+    purchases: { ...DEFAULT_CONFIG.purchases, ...(remote?.purchases ?? {}) },
+    legal: { ...DEFAULT_CONFIG.legal, ...(remote?.legal ?? {}) }
   };
 }
 

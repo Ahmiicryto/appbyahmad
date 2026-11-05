@@ -12,7 +12,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#090C0A",
+        "backgroundColor": "#0A0E15",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -27,7 +27,15 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "AppByAhmad uses your photos so you can choose a profile picture.",
+          "cameraPermission": "AppByAhmad uses the camera so you can take a profile picture.",
+          "microphonePermission": false
+        }
+      ]
     ],
     "extra": {
       "apiUrl": "https://appbyahmad-production.up.railway.app"

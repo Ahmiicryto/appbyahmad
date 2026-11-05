@@ -5,12 +5,13 @@ import { requireAuth } from "../lib/auth.js";
 import { badRequest, notFound } from "../lib/errors.js";
 import { logger } from "../logger.js";
 import { track } from "../services/activity.js";
+import { applyRevenueCatEvent, checkWebhookAuth, storeConfig, syncUser } from "../services/revenuecat.js";
 import { getSetting } from "../services/settings.js";
 import { constructEvent, getStripe, requireStripe, stripeFailure, syncPlanToStripe } from "../services/stripe.js";
 
 export const billingRouter = Router();
 
-const PUBLIC_PLAN_COLUMNS = "id, name, description, price_cents, currency, interval, trial_days, features";
+const PUBLIC_PLAN_COLUMNS = "id, name, description, price_cents, currency, interval, trial_days, features, store_product_id";
 // Statuses that keep Premium on, and statuses that end it.
 export const LIVE_STATUSES = ["active", "trialing", "past_due"];
 export const ENDED_STATUSES = ["canceled", "unpaid", "incomplete_expired"];
@@ -21,7 +22,13 @@ const baseUrl = (req) => `${req.protocol}://${req.get("host")}`;
 
 billingRouter.get("/plans", async (req, res) => {
   const { rows } = await query(`SELECT ${PUBLIC_PLAN_COLUMNS} FROM plans WHERE active ORDER BY sort, price_cents`);
-  res.json({ plans: rows, paymentsEnabled: Boolean(await getSetting("stripe_secret_key")) });
+  const store = await storeConfig();
+  res.json({
+    plans: rows,
+    // Stripe checkout (web). On iOS/Android the app buys through the stores via RevenueCat.
+    paymentsEnabled: Boolean(await getSetting("stripe_secret_key")),
+    storePurchases: { enabled: store.enabled, entitlement: store.entitlement }
+  });
 });
 
 // Page Stripe sends people back to when no custom URL is set. The app's in-app browser just needs something to close.
@@ -53,6 +60,15 @@ billingRouter.get("/me", async (req, res) => {
     [req.user.id, LIVE_STATUSES]
   );
   res.json({ plan: req.user.plan, isPremium: req.user.isPremium, plan_expires_at: req.user.plan_expires_at, subscription });
+});
+
+// Called by the app right after a store purchase or "Restore purchases": asks RevenueCat for the truth.
+billingRouter.post("/revenuecat/sync", async (req, res) => {
+  const { entitlementActive } = await syncUser(req.user.id);
+  const me = await one("SELECT plan, plan_expires_at FROM users WHERE id = $1", [req.user.id]);
+  const isPremium = me.plan === "premium" && (!me.plan_expires_at || new Date(me.plan_expires_at) > new Date());
+  if (entitlementActive) track(req.user.id, "purchase.synced");
+  res.json({ isPremium, plan: me.plan, plan_expires_at: me.plan_expires_at });
 });
 
 const CheckoutBody = z.object({ plan_id: z.string().trim().min(1).max(40) }).strict();
@@ -300,4 +316,31 @@ async function recordInvoice(invoice, status) {
     [userId, invoice.id, amount ?? 0, invoice.currency || "usd", status]
   );
   if (userId) track(userId, status === "succeeded" ? "payment.succeeded" : "payment.failed", { amount_cents: amount ?? 0, currency: invoice.currency });
+}
+
+// ---------------------------------------------------------------- RevenueCat webhook
+
+// RevenueCat → Project settings → Integrations → Webhooks. The "Authorization header value" there must match
+// the webhook password in admin Settings → In-app purchases.
+export async function revenuecatWebhook(req, res) {
+  const auth = await checkWebhookAuth(req.get("authorization"));
+  if (auth === "not_configured") {
+    return res.status(400).json({ error: { code: "webhook_not_configured", message: "Set the RevenueCat webhook password in admin Settings." } });
+  }
+  if (auth !== "ok") return res.status(401).json({ error: { code: "bad_auth", message: "Authorization header didn't match the webhook password." } });
+
+  const event = req.body?.event;
+  if (!event?.id || !event?.type) return res.status(400).json({ error: { code: "bad_event", message: "Missing event." } });
+  const id = `rc_${event.id}`;
+  const fresh = await one("INSERT INTO webhook_events (id, type) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING RETURNING id", [id, `revenuecat.${event.type}`]);
+  if (!fresh) return res.json({ received: true, duplicate: true });
+  try {
+    const handled = await applyRevenueCatEvent(event);
+    res.json({ received: true, handled });
+  } catch (err) {
+    // Forget it so RevenueCat's retry is processed.
+    await query("DELETE FROM webhook_events WHERE id = $1", [id]).catch(() => {});
+    logger.error({ err, type: event.type }, "revenuecat webhook failed");
+    res.status(500).json({ error: { code: "webhook_failed", message: "Couldn't process this event. RevenueCat will retry." } });
+  }
 }

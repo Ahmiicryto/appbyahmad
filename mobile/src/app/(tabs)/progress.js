@@ -8,11 +8,11 @@ export default function Progress() {
   const t = useTheme();
   const { data, error, loading, reload } = useLoad("/today");
   if (loading && !data) return <Loading />;
-  if (!data) return <Screen><ErrorBox error={error} onRetry={reload} /></Screen>;
+  if (!data) return <Screen tabBar><ErrorBox error={error} onRetry={reload} /></Screen>;
   const { lifeScore, goals } = data;
 
   return (
-    <Screen>
+    <Screen tabBar>
       <Rise style={{ gap: 4 }}>
         <T v="h1">Your progress</T>
         <T v="small" muted>Last 7 days</T>
@@ -32,7 +32,7 @@ export default function Progress() {
             <Ring size={80} stroke={8} value={lifeScore.parts.consistency} delay={300} label={`Consistency ${lifeScore.parts.consistency} percent`}>
               <T v="h3">{lifeScore.parts.consistency}%</T>
             </Ring>
-            <T v="small" muted>Consistency</T>
+            <T v="small" muted>🔥 Consistency</T>
           </Card>
         </Rise>
         <Rise delay={180} style={{ flex: 1 }}>
@@ -40,7 +40,7 @@ export default function Progress() {
             <Ring size={80} stroke={8} value={lifeScore.parts.goals} color={t.c4} delay={400} label={`Goals ${lifeScore.parts.goals} percent`}>
               <T v="h3">{lifeScore.parts.goals}%</T>
             </Ring>
-            <T v="small" muted>Goals</T>
+            <T v="small" muted>🎯 Goals</T>
           </Card>
         </Rise>
       </View>
@@ -56,7 +56,7 @@ export default function Progress() {
         </Rise>
       ))}
       <Card>
-        <T v="h3">Weekly Life Review</T>
+        <T v="h3">📊 Weekly Life Review</T>
         <T muted>Your weekly summary, patterns and "Build my next week" arrive in the next update.</T>
       </Card>
     </Screen>
