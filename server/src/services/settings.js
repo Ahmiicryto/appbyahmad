@@ -44,6 +44,13 @@ export const SETTINGS = {
   checkout_success_url: { schema: z.url(), default: () => "", group: "payments", label: "After-payment page" },
   checkout_cancel_url: { schema: z.url(), default: () => "", group: "payments", label: "Cancelled-payment page" },
 
+  // In-app purchases (RevenueCat → App Store / Google Play)
+  revenuecat_ios_key: { schema: z.string().trim().regex(/^appl_[A-Za-z0-9]+$/, "Starts with appl_"), default: () => "", group: "store", label: "RevenueCat Apple public key" },
+  revenuecat_android_key: { schema: z.string().trim().regex(/^goog_[A-Za-z0-9]+$/, "Starts with goog_"), default: () => "", group: "store", label: "RevenueCat Google public key" },
+  revenuecat_secret_key: { secret: true, schema: z.string().trim().regex(/^sk_[A-Za-z0-9]+$/, "Starts with sk_"), group: "store", label: "RevenueCat secret API key" },
+  revenuecat_webhook_auth: { secret: true, schema: z.string().trim().min(16, "Use at least 16 characters").max(200), group: "store", label: "RevenueCat webhook password" },
+  revenuecat_entitlement: { schema: z.string().trim().regex(/^[A-Za-z0-9_.-]{1,64}$/, "Letters, numbers, dots, dashes, underscores"), default: () => "premium", group: "store", label: "RevenueCat entitlement ID" },
+
   // Push notifications (optional; Expo push works without it unless "enhanced security" is on in Expo)
   expo_access_token: { secret: true, schema: z.string().trim().min(10).max(500), group: "push", label: "Expo access token" }
 };

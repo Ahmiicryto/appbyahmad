@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { one } from "../db/pool.js";
+import { storeConfig } from "../services/revenuecat.js";
 import { getSettings } from "../services/settings.js";
 
 // Public remote config for the phone app: read on launch, every few minutes and on foreground.
@@ -15,6 +16,7 @@ appConfigRouter.get("/", async (req, res) => {
     "signup_open"
   ]);
   const { n } = await one("SELECT count(*)::int AS n FROM plans WHERE active");
+  const store = await storeConfig();
   const a = s.announcement;
   res.set("Cache-Control", "no-store");
   res.json({
@@ -23,6 +25,8 @@ appConfigRouter.get("/", async (req, res) => {
     features: s.feature_flags,
     minAppVersion: s.min_app_version,
     signupOpen: Boolean(s.signup_open),
-    plansAvailable: n
+    plansAvailable: n,
+    // RevenueCat public SDK keys (safe to ship to the app; the secret key never leaves the server).
+    purchases: { enabled: store.enabled, iosKey: store.iosKey, androidKey: store.androidKey, entitlement: store.entitlement }
   });
 });

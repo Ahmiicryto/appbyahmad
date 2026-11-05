@@ -3,24 +3,43 @@ import { NavLink } from "react-router-dom";
 
 const THEME_KEY = "aba_admin_theme";
 
+// "auto" follows the computer's light/dark setting.
 function readTheme() {
   try {
-    return localStorage.getItem(THEME_KEY) || "dark";
+    return localStorage.getItem(THEME_KEY) || "auto";
   } catch {
-    return "dark";
+    return "auto";
   }
+}
+
+const NEXT = { auto: "light", light: "dark", dark: "auto" };
+const LABEL = { auto: "Theme: Auto", light: "Theme: Light", dark: "Theme: Dark" };
+
+const DARK_QUERY = typeof window !== "undefined" && window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+
+function useSystemDark() {
+  const query = DARK_QUERY;
+  const [dark, setDark] = useState(() => (query ? query.matches : true));
+  useEffect(() => {
+    if (!query) return undefined;
+    const on = (e) => setDark(e.matches);
+    query.addEventListener("change", on);
+    return () => query.removeEventListener("change", on);
+  }, [query]);
+  return dark;
 }
 
 export function Layout({ me, onSignOut, children }) {
   const [theme, setTheme] = useState(readTheme);
+  const systemDark = useSystemDark();
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
+    document.documentElement.dataset.theme = theme === "auto" ? (systemDark ? "dark" : "light") : theme;
     try {
       localStorage.setItem(THEME_KEY, theme);
     } catch {
       /* private mode: theme just won't persist */
     }
-  }, [theme]);
+  }, [theme, systemDark]);
 
   return (
     <div className="shell">
@@ -42,8 +61,8 @@ export function Layout({ me, onSignOut, children }) {
         </nav>
         <div className="side-foot">
           <span className="muted" title={me.email}>{me.email}</span>
-          <button className="link" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-            {theme === "dark" ? "Light mode" : "Dark mode"}
+          <button className="link" onClick={() => setTheme(NEXT[theme] ?? "auto")} title="Switch between auto, light and dark">
+            {LABEL[theme] ?? LABEL.auto}
           </button>
           <button className="link" onClick={onSignOut}>Sign out</button>
         </div>

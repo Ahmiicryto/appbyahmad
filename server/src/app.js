@@ -18,7 +18,7 @@ import { adminActivityRouter, adminErrorsRouter } from "./routes/adminMonitoring
 import { adminNotificationsRouter } from "./routes/adminNotifications.js";
 import { adminSettingsRouter } from "./routes/adminSettings.js";
 import { appConfigRouter } from "./routes/appConfig.js";
-import { billingRouter, stripeWebhook } from "./routes/billing.js";
+import { billingRouter, revenuecatWebhook, stripeWebhook } from "./routes/billing.js";
 import { clientErrorsRouter } from "./routes/clientErrors.js";
 import { notificationsRouter } from "./routes/notifications.js";
 import { maintenanceGate } from "./middleware/maintenance.js";
@@ -34,6 +34,8 @@ export function createApp() {
   // Stripe signs the raw body, so the webhook must be mounted before the JSON parser.
   app.post("/api/billing/webhook", express.raw({ type: "application/json", limit: "1mb" }), stripeWebhook);
   app.use(express.json({ limit: "200kb" }));
+  // Store purchases keep working during maintenance, like the Stripe webhook.
+  app.post("/api/billing/revenuecat/webhook", revenuecatWebhook);
 
   // The phone app calls the API directly (no browser CORS). Only listed web origins get CORS headers.
   const origins = config.CORS_ORIGINS.split(",").map((s) => s.trim()).filter(Boolean);

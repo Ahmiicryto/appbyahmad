@@ -64,6 +64,7 @@ export function Settings() {
       <AiCard {...props} />
       <LimitsCard {...props} />
       <AppCard {...props} />
+      <StoreCard {...props} />
       <PaymentsCard {...props} />
       <PushCard {...props} />
     </>
@@ -438,6 +439,36 @@ function PaymentsCard({ settings, onSaved }) {
         <TextField k="checkout_success_url" card={card} settings={settings} type="url" label="After-payment page" placeholder="https://…" />
         <TextField k="checkout_cancel_url" card={card} settings={settings} type="url" label="Cancelled-payment page" placeholder="https://…" />
       </div>
+    </Card>
+  );
+}
+
+const STORE_KEYS = ["revenuecat_ios_key", "revenuecat_android_key", "revenuecat_secret_key", "revenuecat_webhook_auth", "revenuecat_entitlement"];
+function StoreCard({ settings, onSaved }) {
+  const card = useCard(STORE_KEYS, settings, onSaved);
+  const webhookUrl = `${window.location.origin}/api/billing/revenuecat/webhook`;
+  const ready = settings.revenuecat_ios_key.value || settings.revenuecat_android_key.value;
+  return (
+    <Card
+      title="In-app purchases (App Store & Google Play)"
+      desc={<>Subscriptions bought inside the phone app go through RevenueCat. Keys are in app.revenuecat.com → Project settings → API keys. Put each plan's store product ID on the <Link to="/plans">Plans</Link> page.</>}
+      card={card}
+      extra={<span className="muted" style={{ fontSize: 13 }}>{ready ? "Store purchases are on in the app." : "Store purchases are off until a public key is saved."}</span>}
+    >
+      <div className="grid two">
+        <TextField k="revenuecat_ios_key" card={card} settings={settings} label="Apple public SDK key" placeholder="appl_…" hint="Starts with appl_. Safe to share." />
+        <TextField k="revenuecat_android_key" card={card} settings={settings} label="Google public SDK key" placeholder="goog_…" hint="Starts with goog_. Safe to share." />
+      </div>
+      <SecretField k="revenuecat_secret_key" card={card} settings={settings} label="Secret API key" hint="Starts with sk_. Lets the server confirm purchases instantly and keep plans in sync." placeholder={settings.revenuecat_secret_key.configured ? "Replace key" : "Paste key"} />
+      <SecretField
+        k="revenuecat_webhook_auth"
+        card={card}
+        settings={settings}
+        label="Webhook password"
+        hint={<>Make up a long password (16+ characters). In RevenueCat → Integrations → Webhooks, set the URL to <code style={{ userSelect: "all" }}>{webhookUrl}</code> and the Authorization header value to this same password.</>}
+        placeholder={settings.revenuecat_webhook_auth.configured ? "Replace password" : "Make up a password"}
+      />
+      <TextField k="revenuecat_entitlement" card={card} settings={settings} label="Entitlement ID" placeholder="premium" hint="The entitlement in RevenueCat that unlocks Premium. Usually premium." />
     </Card>
   );
 }

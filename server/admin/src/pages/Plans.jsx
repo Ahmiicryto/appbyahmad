@@ -62,13 +62,13 @@ export function Plans() {
           <div className="table-wrap">
             <table>
               <thead>
-                <tr><th>Plan</th><th className="num">Price</th><th>Trial</th><th className="num">Subscribers</th><th>Status</th><th>Stripe</th><th className="num">Sort</th><th /></tr>
+                <tr><th>Plan</th><th className="num">Price</th><th>Trial</th><th className="num">Subscribers</th><th>Status</th><th>Stripe</th><th>App stores</th><th className="num">Sort</th><th /></tr>
               </thead>
               <tbody>
                 {plans.data.plans.map((p) =>
                   editing === p.id ? (
                     <tr key={p.id}>
-                      <td colSpan={8} style={{ whiteSpace: "normal", background: "var(--surface-2)" }}>
+                      <td colSpan={9} style={{ whiteSpace: "normal", background: "var(--surface-2)" }}>
                         <PlanForm plan={p} onCancel={() => setEditing(null)} onSaved={saved} stripeConfigured={status.data?.stripeConfigured} />
                       </td>
                     </tr>
@@ -80,6 +80,7 @@ export function Plans() {
                       <td className="num">{fmt.num(p.subscribers)}</td>
                       <td>{p.active ? <span className="badge premium">Active</span> : <span className="badge">Archived</span>}</td>
                       <td>{p.stripe_price_id ? <code>{p.stripe_price_id}</code> : <span className="muted">Created at first checkout</span>}</td>
+                      <td>{p.store_product_id ? <code>{p.store_product_id}</code> : <span className="muted">Not sold in apps</span>}</td>
                       <td className="num">{p.sort}</td>
                       <td><button onClick={() => setEditing(p.id)}>Edit</button></td>
                     </tr>
@@ -221,6 +222,7 @@ function toForm(p) {
     interval: p?.interval ?? "month",
     trial_days: String(p?.trial_days ?? 0),
     features: (p?.features ?? []).join("\n"),
+    store_product_id: p?.store_product_id ?? "",
     active: p?.active ?? true,
     sort: String(p?.sort ?? 0)
   };
@@ -254,6 +256,7 @@ function PlanForm({ plan, onCancel, onSaved, stripeConfigured }) {
       interval: f.interval,
       trial_days: Number(f.trial_days) || 0,
       features: f.features.split("\n").map((s) => s.trim()).filter(Boolean),
+      store_product_id: f.store_product_id.trim() || null,
       active: f.active,
       sort: Number(f.sort) || 0
     };
@@ -291,6 +294,11 @@ function PlanForm({ plan, onCancel, onSaved, stripeConfigured }) {
         <label className="field">Sort (lower shows first)<input type="number" value={f.sort} onChange={set("sort")} />{err("sort")}</label>
       </div>
       <label className="field">Description (shown under the name)<input value={f.description} onChange={set("description")} maxLength={300} placeholder="Billed every month" /></label>
+      <label className="field">App Store / Google Play product ID
+        <input value={f.store_product_id} onChange={set("store_product_id")} maxLength={100} placeholder="premium_monthly" />
+        <span className="muted" style={{ fontWeight: 400, fontSize: 12 }}>The exact product ID you created in App Store Connect and Google Play Console (and added to RevenueCat). The stores charge their own price, so set the same price there.</span>
+        {err("store_product_id")}
+      </label>
       <label className="field">Features, one per line<textarea style={textarea} value={f.features} onChange={set("features")} />{err("features")}</label>
       <label style={{ display: "flex", gap: 8, alignItems: "center", fontWeight: 600 }}>
         <input type="checkbox" checked={f.active} onChange={set("active")} style={{ minHeight: 0 }} /> Show this plan in the app

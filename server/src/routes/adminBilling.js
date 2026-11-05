@@ -19,6 +19,8 @@ const PlanFields = {
   interval: z.enum(["month", "year"]),
   trial_days: z.number().int().min(0).max(90),
   features: z.array(z.string().trim().min(1).max(120)).max(20),
+  // Product id from App Store Connect / Google Play Console (used by RevenueCat). Empty = not sold in the stores.
+  store_product_id: z.string().trim().max(100).regex(/^[A-Za-z0-9._:-]*$/, "Letters, numbers, dots, dashes, underscores or colons").nullable(),
   active: z.boolean(),
   sort: z.number().int().min(-1000).max(1000)
 };
@@ -31,6 +33,7 @@ const PlanCreate = z
     currency: PlanFields.currency.default("usd"),
     trial_days: PlanFields.trial_days.default(0),
     features: PlanFields.features.default([]),
+    store_product_id: PlanFields.store_product_id.optional(),
     active: PlanFields.active.default(true),
     sort: PlanFields.sort.default(0)
   })
@@ -57,6 +60,13 @@ async function syncIfConfigured(plan, newPrice) {
   }
 }
 
+function storeIdTaken(err) {
+  if (err?.code === "23505" && String(err.constraint || "").includes("store_product_id")) {
+    throw new HttpError(409, "Another plan already uses that store product ID.", "store_product_taken");
+  }
+  throw err;
+}
+
 adminBillingRouter.get("/plans", async (req, res) => {
   const { rows } = await query(
     `SELECT p.*, (SELECT count(*)::int FROM subscriptions s WHERE s.plan_id = p.id AND s.status IN ('active', 'trialing', 'past_due')) AS subscribers
@@ -71,10 +81,10 @@ adminBillingRouter.post("/plans", async (req, res) => {
     throw new HttpError(409, `A plan with the id "${f.id}" already exists. Pick another id.`, "plan_exists");
   }
   const created = await one(
-    `INSERT INTO plans (id, name, description, price_cents, currency, interval, trial_days, features, active, sort)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
-    [f.id, f.name, f.description || null, f.price_cents, f.currency, f.interval, f.trial_days, JSON.stringify(f.features), f.active, f.sort]
-  );
+    `INSERT INTO plans (id, name, description, price_cents, currency, interval, trial_days, features, store_product_id, active, sort)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
+    [f.id, f.name, f.description || null, f.price_cents, f.currency, f.interval, f.trial_days, JSON.stringify(f.features), f.store_product_id || null, f.active, f.sort]
+  ).catch(storeIdTaken);
   await audit(req.user.id, "plan.create", "plan", created.id, { after: pick(created, EDITABLE) });
   const result = await syncIfConfigured(created, false);
   res.status(201).json(result);
@@ -85,6 +95,7 @@ adminBillingRouter.patch("/plans/:id", async (req, res) => {
   if (!before) throw notFound("Plan not found.");
   const f = PlanUpdate.parse(req.body ?? {});
   if ("description" in f) f.description = f.description || null;
+  if ("store_product_id" in f) f.store_product_id = f.store_product_id || null;
   const changed = Object.keys(f).filter((k) => JSON.stringify(f[k]) !== JSON.stringify(before[k]));
   if (!changed.length) return res.json({ plan: before, stripe: "unchanged" });
 
@@ -94,7 +105,7 @@ adminBillingRouter.patch("/plans/:id", async (req, res) => {
   const updated = await one(
     `UPDATE plans SET ${sets.join(", ")}, updated_at = now() WHERE id = $1 RETURNING *`,
     [before.id, ...values]
-  );
+  ).catch(storeIdTaken);
   await audit(req.user.id, priceChanged ? "plan.price_change" : changed.includes("active") && !f.active ? "plan.archive" : "plan.update", "plan", before.id, {
     before: pick(before, changed),
     after: pick(updated, changed)

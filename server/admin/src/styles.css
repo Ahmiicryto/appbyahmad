@@ -1,42 +1,52 @@
 :root {
-  --bg: #090c0a;
-  --surface: #111713;
-  --surface-2: #18211b;
-  --line: #253029;
-  --text: #eef4ef;
-  --muted: #9aaaa0;
-  --accent: #22c55e;
-  --on-accent: #03140a;
-  --accent-ink: #4ade80;
-  --accent-soft: rgba(74, 222, 128, 0.1);
-  --chart: #1fae53;
-  --danger: #f87171;
-  --danger-soft: rgba(248, 113, 113, 0.12);
-  --warn: #f5b841;
+  /* Steel blue (#8299B7) glass palette, matching the app. Follows the computer's light/dark setting by default. */
+  --bg: #0a0e15;
+  --surface: rgba(20, 27, 39, 0.72);
+  --surface-2: #18202d;
+  --line: #263042;
+  --text: #eef2f8;
+  --muted: #9da9bb;
+  --accent: #8299b7;
+  --on-accent: #0a111c;
+  --accent-ink: #b3c5de;
+  --accent-soft: rgba(130, 153, 183, 0.16);
+  --chart: #8299b7;
+  --danger: #f08a8a;
+  --danger-soft: rgba(240, 138, 138, 0.12);
+  --warn: #e8b86b;
+  --blob-1: rgba(130, 153, 183, 0.28);
+  --blob-2: rgba(70, 100, 150, 0.22);
   color-scheme: dark;
 }
 :root[data-theme="light"] {
-  --bg: #f6f7f6;
-  --surface: #ffffff;
-  --surface-2: #f0f2f0;
-  --line: #e1e4e1;
-  --text: #0b0f0c;
-  --muted: #55605a;
-  --accent: #16a34a;
-  --on-accent: #ffffff;
-  --accent-ink: #15803d;
-  --accent-soft: rgba(22, 163, 74, 0.08);
-  --chart: #16a34a;
-  --danger: #c53030;
-  --danger-soft: rgba(197, 48, 48, 0.08);
-  --warn: #9a6a12;
+  --bg: #edf1f7;
+  --surface: rgba(255, 255, 255, 0.78);
+  --surface-2: #f1f4f9;
+  --line: #dce3ed;
+  --text: #0f1724;
+  --muted: #4a5568;
+  --accent: #8299b7;
+  --on-accent: #0b1220;
+  --accent-ink: #41597d;
+  --accent-soft: rgba(130, 153, 183, 0.18);
+  --chart: #5f7a9e;
+  --danger: #b42318;
+  --danger-soft: rgba(180, 35, 24, 0.08);
+  --warn: #9a5f0e;
+  --blob-1: rgba(130, 153, 183, 0.35);
+  --blob-2: rgba(220, 200, 235, 0.35);
   color-scheme: light;
 }
 
 * { box-sizing: border-box; }
 body {
   margin: 0;
-  background: var(--bg);
+  min-height: 100vh;
+  background:
+    radial-gradient(600px 420px at 85% -5%, var(--blob-1), transparent 70%),
+    radial-gradient(520px 420px at -5% 60%, var(--blob-2), transparent 70%),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--text);
   font: 14px/1.5 Manrope, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
@@ -134,3 +144,6 @@ tbody tr:hover td { background: var(--surface-2); }
 .hbar .track { height: 10px; border-radius: 0 4px 4px 0; background: var(--surface-2); overflow: hidden; }
 .hbar .fill { height: 100%; border-radius: 0 4px 4px 0; background: var(--chart); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Glass surfaces */
+.side, .card { backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%); }

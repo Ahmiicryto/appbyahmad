@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { fmt } from "../api.js";
 import { useApi } from "../useApi.js";
 
-const THEME_SWATCH = { male: "#22c55e", female: "#9b1c3a", neutral: "#ffffff" };
+const THEME_SWATCH = { male: "#8299B7", female: "#582C38", neutral: "#8299B7" };
 
 export function Users() {
   const [params, setParams] = useSearchParams();

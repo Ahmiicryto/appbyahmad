@@ -23,7 +23,7 @@ export function resetClientFactories() {
   Object.assign(factories, defaults);
 }
 
-const GROUPS = ["ai", "limits", "app", "payments", "push"];
+const GROUPS = ["ai", "limits", "app", "payments", "store", "push"];
 
 async function grouped() {
   const all = await settingsForAdmin();

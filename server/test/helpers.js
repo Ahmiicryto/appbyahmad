@@ -13,7 +13,16 @@ export const app = createApp();
 export const api = () => request(app);
 
 export async function resetDb() {
-  await pool.query("DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
+  // Fire-and-forget activity writes from the previous suite can deadlock with the DROP; retry.
+  for (let attempt = 0; ; attempt++) {
+    try {
+      await pool.query("DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
+      break;
+    } catch (err) {
+      if (err.code !== "40P01" || attempt >= 4) throw err;
+      await new Promise((r) => setTimeout(r, 100));
+    }
+  }
   await migrate();
 }
 
