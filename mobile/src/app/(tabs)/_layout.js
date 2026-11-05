@@ -1,4 +1,5 @@
 import { Tabs } from "expo-router";
+import { GlassTabBar } from "../../components/GlassTabBar";
 import { AssistantIcon, GoalsIcon, LifeIcon, ProgressIcon, TodayIcon } from "../../components/icons";
 import { useApp } from "../../lib/AppContext";
 
@@ -8,14 +9,8 @@ export default function TabsLayout() {
   if (!signedIn || !onboarded) return null;
   return (
     <Tabs
-      screenOptions={{
-        headerShown: false,
-        sceneStyle: { backgroundColor: t.bg },
-        tabBarActiveTintColor: t.ink,
-        tabBarInactiveTintColor: t.muted,
-        tabBarStyle: { backgroundColor: t.bg, borderTopColor: t.line },
-        tabBarLabelStyle: { fontWeight: "700", fontSize: 11 }
-      }}
+      tabBar={(props) => <GlassTabBar {...props} />}
+      screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: t.bg } }}
     >
       <Tabs.Screen name="index" options={{ title: "Today", tabBarIcon: ({ color }) => <TodayIcon color={color} /> }} />
       <Tabs.Screen name="goals" options={{ title: "Goals", tabBarIcon: ({ color }) => <GoalsIcon color={color} /> }} />

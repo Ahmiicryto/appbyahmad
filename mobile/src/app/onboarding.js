@@ -1,19 +1,23 @@
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
-import { Button, Card, Field, Overline, Ring, Rise, Screen, T } from "../components/ui";
+import { Button, Card, Emoji, Field, Glass, Overline, Ring, Rise, Screen, Segmented, T } from "../components/ui";
 import { useApp, useTheme } from "../lib/AppContext";
-import { THEMES } from "../theme/themes";
 
 const GENDERS = [
-  { gender: "male", theme: "male", label: "Male" },
-  { gender: "female", theme: "female", label: "Female" },
-  { gender: "unspecified", theme: "neutral", label: "Prefer not to answer" }
+  { gender: "male", theme: "male", label: "Male", sub: "Steel blue", sw: ["#8299B7", "#8299B7"] },
+  { gender: "female", theme: "female", label: "Female", sub: "Plum", sw: ["#582C38", "#582C38"] },
+  { gender: "unspecified", theme: "neutral", label: "Prefer not to say", sub: "Starts with steel blue", sw: ["#8299B7", "#582C38"] }
+];
+const APPEARANCES = [
+  { value: "auto", label: "Auto", emoji: "🌗" },
+  { value: "light", label: "Light", emoji: "☀️" },
+  { value: "dark", label: "Dark", emoji: "🌙" }
 ];
 const STEPS = 4;
 
 export default function Onboarding() {
-  const { updateProfile, setPreviewTheme, themeKey } = useApp();
+  const { updateProfile, setPreviewTheme, setPreviewAppearance, themeKey, appearance } = useApp();
   const t = useTheme();
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -32,6 +36,7 @@ export default function Onboarding() {
         name: f.name.trim(),
         gender: f.gender,
         theme: themeKey,
+        appearance,
         birth_date: /^\d{4}-\d{2}-\d{2}$/.test(f.birth_date) ? f.birth_date : null,
         height_cm: num(f.height_cm),
         weight_kg: num(f.weight_kg),
@@ -42,6 +47,7 @@ export default function Onboarding() {
         complete_onboarding: true
       });
       setPreviewTheme(null);
+      setPreviewAppearance(null);
     } catch (err) {
       setError(err.fields ? "Check the highlighted answers and try again." : err.message);
       setBusy(false);
@@ -70,15 +76,17 @@ export default function Onboarding() {
 
         {step === 1 && (
           <Rise key="s1" style={{ gap: 12 }}>
-            <Overline>Tell us about you</Overline>
-            <T v="h1">Pick your look</T>
-            <T muted>Your answer sets your starting theme. You can change it anytime in Settings.</T>
-            <View accessibilityRole="radiogroup" style={{ gap: 10 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <T v="h1">Make it yours</T>
+              <Emoji e="🎨" size={24} anim="bob" />
+            </View>
+            <T muted>Pick a color and how the app looks. You can change both anytime in Settings.</T>
+            <Overline>Your color</Overline>
+            <View accessibilityRole="radiogroup" style={{ gap: 8 }}>
               {GENDERS.map((g, i) => {
-                const th = THEMES[g.theme];
                 const sel = f.gender === g.gender;
                 return (
-                  <Rise key={g.gender} delay={80 * i}>
+                  <Rise key={g.gender} delay={70 * i}>
                     <Pressable
                       accessibilityRole="radio"
                       accessibilityState={{ checked: sel }}
@@ -86,39 +94,42 @@ export default function Onboarding() {
                         set("gender")(g.gender);
                         setPreviewTheme(g.theme);
                       }}
-                      style={{ flexDirection: "row", alignItems: "center", gap: 14, minHeight: 68, padding: 12, borderRadius: 18, borderWidth: 1.5, borderColor: sel ? t.ink : t.line, backgroundColor: sel ? t.soft : t.s1 }}
                     >
-                      <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: th.bg, borderWidth: 1, borderColor: th.line, alignItems: "center", justifyContent: "center" }}>
-                        <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: th.acc }} />
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <T v="h3">{g.label}</T>
-                        <T v="small" muted>{th.name} theme</T>
-                      </View>
-                      <View style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: sel ? t.acc : t.line, backgroundColor: sel ? t.acc : "transparent", alignItems: "center", justifyContent: "center" }}>
-                        {sel && (
-                          <Svg width={12} height={12} viewBox="0 0 24 24"><Path d="M5 12l5 5L20 7" stroke={t.onAcc} strokeWidth={4} fill="none" strokeLinecap="round" /></Svg>
-                        )}
-                      </View>
+                      <Glass radius={20} border={sel ? t.ink : undefined} style={{ flexDirection: "row", alignItems: "center", gap: 12, minHeight: 64, padding: 12, borderWidth: 1.5, backgroundColor: sel ? t.soft : t.s1 }}>
+                        <View style={{ width: 40, height: 40, borderRadius: 12, overflow: "hidden", flexDirection: "row", transform: [{ rotate: "45deg" }, { scale: 0.85 }] }}>
+                          <View style={{ flex: 1, backgroundColor: g.sw[0] }} />
+                          <View style={{ flex: 1, backgroundColor: g.sw[1] }} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <T v="h3">{g.label}</T>
+                          <T v="small" muted>{g.sub}</T>
+                        </View>
+                        <View style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: sel ? t.ink : t.muted, backgroundColor: sel ? t.acc : "transparent", alignItems: "center", justifyContent: "center" }}>
+                          {sel && (
+                            <Svg width={12} height={12} viewBox="0 0 24 24"><Path d="M5 12l5 5L20 7" stroke={t.onAcc} strokeWidth={4} fill="none" strokeLinecap="round" /></Svg>
+                          )}
+                        </View>
+                      </Glass>
                     </Pressable>
                   </Rise>
                 );
               })}
             </View>
-            {f.gender && (
-              <Rise key={themeKey}>
-                <Card style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
-                  <Ring size={80} stroke={8} value={78} label="Life Score preview">
-                    <T v="h3">782</T>
-                  </Ring>
-                  <View style={{ flex: 1, gap: 6 }}>
-                    <T v="tiny" muted>LIVE PREVIEW</T>
-                    <T v="small" style={{ fontWeight: "700" }}>{f.name ? `Good morning, ${f.name.trim()}` : "Good morning"}</T>
-                    <T v="small" muted>Here's your day.</T>
-                  </View>
-                </Card>
-              </Rise>
-            )}
+            <Overline>Appearance</Overline>
+            <Segmented label="Appearance" value={appearance} onChange={setPreviewAppearance} options={APPEARANCES} />
+            <T v="small" muted>Auto matches your phone's light or dark setting.</T>
+            <Rise key={`${themeKey}-${t.mode}`}>
+              <Card style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
+                <Ring size={72} stroke={8} value={78} label="Life Score preview">
+                  <T v="h3">782</T>
+                </Ring>
+                <View style={{ flex: 1, gap: 4 }}>
+                  <Overline>Live preview</Overline>
+                  <T style={{ fontWeight: "800" }}>{f.name ? `Good morning, ${f.name.trim()} 👋` : "Good morning 👋"}</T>
+                  <T v="small" muted>3 priorities waiting for you</T>
+                </View>
+              </Card>
+            </Rise>
           </Rise>
         )}
 

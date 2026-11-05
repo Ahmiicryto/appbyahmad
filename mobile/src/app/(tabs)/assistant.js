@@ -12,18 +12,18 @@ const EXAMPLES = [
 export default function Assistant() {
   const t = useTheme();
   return (
-    <Screen>
+    <Screen tabBar>
       <Rise style={{ gap: 4 }}>
         <T v="h1">Assistant</T>
         <T v="small" muted>Knows your goals, money, fitness and schedule.</T>
       </Rise>
       <Rise delay={80}>
         <Card highlight={t.ink}>
-          <T v="h3">Coming in the next update</T>
+          <T v="h3">✨ Coming in the next update</T>
           <T muted>Soon you'll be able to ask things like:</T>
           <View style={{ gap: 8 }}>
             {EXAMPLES.map((e) => (
-              <View key={e} style={{ alignSelf: "flex-start", backgroundColor: t.s2, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 8 }}>
+              <View key={e} style={{ alignSelf: "flex-start", backgroundColor: t.soft, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 8 }}>
                 <T v="small">{e}</T>
               </View>
             ))}

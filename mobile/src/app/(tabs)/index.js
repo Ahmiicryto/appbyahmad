@@ -2,10 +2,9 @@ import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
 import { AnnouncementBanner } from "../../components/AnnouncementBanner";
-import { GearIcon } from "../../components/icons";
 import { NotificationBell } from "../../components/NotificationBell";
 import { TaskRow } from "../../components/TaskRow";
-import { Bar, Button, Card, ErrorBox, Field, Loading, Ring, Rise, Screen, T } from "../../components/ui";
+import { Avatar, Bar, Button, Card, Emoji, ErrorBox, Field, Loading, Ring, Rise, Screen, T } from "../../components/ui";
 import { api } from "../../lib/api";
 import { useApp, useTheme } from "../../lib/AppContext";
 import { useLoad } from "../../lib/useLoad";
@@ -24,7 +23,7 @@ export default function Today() {
   const score = useCountUp(data?.lifeScore.score ?? 0);
 
   if (loading && !data) return <Loading />;
-  if (!data) return <Screen><ErrorBox error={error} onRetry={reload} /></Screen>;
+  if (!data) return <Screen tabBar><ErrorBox error={error} onRetry={reload} /></Screen>;
 
   const date = new Date(`${data.date}T12:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
 
@@ -49,19 +48,19 @@ export default function Today() {
   }
 
   return (
-    <Screen>
+    <Screen tabBar>
       <Rise style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-        <View style={{ width: 44, height: 44, borderRadius: 22, borderWidth: 1.5, borderColor: t.ink, backgroundColor: t.soft, alignItems: "center", justifyContent: "center" }}>
-          <T v="h3" color={t.ink}>{(profile?.name || "?").charAt(0).toUpperCase()}</T>
-        </View>
+        <Pressable onPress={() => router.push("/profile")} accessibilityRole="button" accessibilityLabel="Open your profile" hitSlop={4}>
+          <Avatar profile={profile} size={48} />
+        </Pressable>
         <View style={{ flex: 1 }}>
-          <T v="h2" numberOfLines={1} adjustsFontSizeToFit style={{ fontSize: 18 }}>{greeting()}{profile?.name ? `, ${profile.name}` : ""}</T>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <T v="h2" numberOfLines={1} style={{ fontSize: 19, flexShrink: 1 }}>{greeting()}{profile?.name ? `, ${profile.name.split(" ")[0]}` : ""}</T>
+            <Emoji e="👋" size={19} anim="wave" delay={600} />
+          </View>
           <T v="small" muted numberOfLines={1}>{date} · Here's your day.</T>
         </View>
         <NotificationBell />
-        <Pressable onPress={() => router.push("/settings")} accessibilityRole="button" accessibilityLabel="Settings" style={{ width: 44, height: 44, borderRadius: 14, borderWidth: 1, borderColor: t.line, backgroundColor: t.s1, alignItems: "center", justifyContent: "center" }}>
-          <GearIcon color={t.text} />
-        </Pressable>
       </Rise>
 
       <AnnouncementBanner />
@@ -73,7 +72,7 @@ export default function Today() {
             <T v="tiny" muted>of 1000</T>
           </Ring>
           <View style={{ flex: 1, gap: 8 }}>
-            <T v="h3">Life Score</T>
+            <T v="h3">✨ Life Score</T>
             <Row label="Consistency" value={data.lifeScore.parts.consistency} color={t.ink} delay={300} />
             <Row label="Goals" value={data.lifeScore.parts.goals} color={t.c4} delay={400} />
             <T v="tiny" muted style={{ fontWeight: "500" }}>Progress and consistency over the last 7 days.</T>
@@ -82,7 +81,7 @@ export default function Today() {
       </Rise>
 
       <Rise delay={150} style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", marginTop: 4 }}>
-        <T v="h3">Today's priorities</T>
+        <T v="h3">🎯 Today's priorities</T>
         <T v="small" muted>{data.done} of {data.tasks.length} done</T>
       </Rise>
 
@@ -95,7 +94,7 @@ export default function Today() {
       ) : (
         <Rise delay={200}>
           <Card>
-            <T v="h3">Nothing planned for today</T>
+            <T v="h3">🌤️ Nothing planned for today</T>
             <T muted>{data.goals.length ? "Add a task below, or open a goal to see what's next." : "Set your first goal and we'll build your daily plan."}</T>
             {!data.goals.length && <Button title="Set my first goal" pulse onPress={() => router.push("/goal/new")} />}
           </Card>
@@ -104,13 +103,13 @@ export default function Today() {
 
       <Rise delay={300} style={{ flexDirection: "row", gap: 8, alignItems: "flex-end" }}>
         <Field style={{ flex: 1 }} label="Add a task for today" value={newTask} onChangeText={setNewTask} placeholder="Call the bank" onSubmitEditing={addTask} returnKeyType="done" />
-        <Button title="Add" variant="secondary" onPress={addTask} disabled={!newTask.trim()} style={{ minHeight: 50 }} />
+        <Button title="Add" emoji="➕" small variant="secondary" onPress={addTask} disabled={!newTask.trim()} style={{ marginBottom: 4 }} />
       </Rise>
 
       {data.goals.length > 0 && (
         <Rise delay={350}>
           <Card>
-            <T v="h3">Goal progress</T>
+            <T v="h3">🚀 Goal progress</T>
             {data.goals.map((g, i) => (
               <Pressable key={g.id} onPress={() => router.push(`/goal/${g.id}`)} accessibilityRole="link" style={{ gap: 6, paddingVertical: 4 }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between" }}>

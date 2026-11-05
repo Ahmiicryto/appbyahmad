@@ -4,7 +4,7 @@ import { Pressable, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { api } from "../lib/api";
 import { useTheme } from "../lib/AppContext";
-import { T } from "./ui";
+import { Glass, T } from "./ui";
 
 export const BellIcon = ({ color, size = 22 }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -37,12 +37,11 @@ export function NotificationBell() {
       accessibilityRole="button"
       accessibilityLabel={label}
       hitSlop={4}
-      style={({ pressed }) => ({
-        width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center",
-        backgroundColor: t.s1, borderWidth: 1, borderColor: t.line, opacity: pressed ? 0.8 : 1
-      })}
+      style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
     >
-      <BellIcon color={t.text} />
+      <Glass radius={14} style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}>
+        <BellIcon color={t.text} />
+      </Glass>
       {count > 0 && (
         <View
           pointerEvents="none"

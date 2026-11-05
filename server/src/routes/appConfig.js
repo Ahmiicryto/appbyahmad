@@ -13,7 +13,10 @@ appConfigRouter.get("/", async (req, res) => {
     "announcement",
     "feature_flags",
     "min_app_version",
-    "signup_open"
+    "signup_open",
+    "terms_url",
+    "privacy_url",
+    "support_email"
   ]);
   const { n } = await one("SELECT count(*)::int AS n FROM plans WHERE active");
   const store = await storeConfig();
@@ -26,6 +29,7 @@ appConfigRouter.get("/", async (req, res) => {
     minAppVersion: s.min_app_version,
     signupOpen: Boolean(s.signup_open),
     plansAvailable: n,
+    legal: { termsUrl: s.terms_url || null, privacyUrl: s.privacy_url || null, supportEmail: s.support_email || null },
     // RevenueCat public SDK keys (safe to ship to the app; the secret key never leaves the server).
     purchases: { enabled: store.enabled, iosKey: store.iosKey, androidKey: store.androidKey, entitlement: store.entitlement }
   });

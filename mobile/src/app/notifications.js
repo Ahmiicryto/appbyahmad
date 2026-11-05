@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Linking, Pressable, Switch, View } from "react-native";
-import { Card, ErrorBox, Rise, Screen, T } from "../components/ui";
+import { Card, ErrorBox, Header, Rise, Screen, T } from "../components/ui";
 import { api } from "../lib/api";
 import { useTheme } from "../lib/AppContext";
 import { useLoad } from "../lib/useLoad";
@@ -49,17 +49,14 @@ export default function Notifications() {
 
   return (
     <Screen>
-      <Pressable onPress={() => router.back()} accessibilityRole="button" style={{ minHeight: 44, justifyContent: "center" }}>
-        <T color={t.ink} style={{ fontWeight: "700" }}>← Back</T>
-      </Pressable>
-      <Rise style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-        <T v="h1" style={{ flex: 1 }}>Notifications</T>
-        {unread > 0 && (
+      <Header
+        title="🔔 Notifications"
+        right={unread > 0 ? (
           <Pressable onPress={readAll} accessibilityRole="button" style={{ minHeight: 44, justifyContent: "center", paddingHorizontal: 6 }}>
-            <T v="small" color={t.ink} style={{ fontWeight: "700" }}>Mark all as read</T>
+            <T v="small" color={t.ink} style={{ fontWeight: "800" }}>Read all</T>
           </Pressable>
-        )}
-      </Rise>
+        ) : null}
+      />
 
       <ErrorBox error={error} onRetry={reload} />
       {data && items.length === 0 && (

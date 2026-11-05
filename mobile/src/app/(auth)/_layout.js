@@ -9,6 +9,7 @@ export default function AuthLayout() {
   return (
     <Stack initialRouteName="welcome" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: t.bg } }}>
       <Stack.Screen name="welcome" />
+      <Stack.Screen name="sign-up" />
       <Stack.Screen name="sign-in" />
     </Stack>
   );

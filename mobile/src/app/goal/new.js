@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, View } from "react-native";
-import { Button, Chip, Field, Overline, Ring, Rise, Screen, T } from "../../components/ui";
+import { Button, Chip, Field, Header, Ring, Rise, Screen, T } from "../../components/ui";
 import { api } from "../../lib/api";
 import { useTheme } from "../../lib/AppContext";
 
@@ -44,12 +44,9 @@ export default function NewGoal() {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <Screen>
-        <Pressable onPress={() => router.back()} accessibilityRole="button" style={{ minHeight: 44, justifyContent: "center" }}>
-          <T color={t.ink} style={{ fontWeight: "700" }}>Cancel</T>
-        </Pressable>
+        <Header title="New goal" />
         <Rise style={{ gap: 6 }}>
-          <Overline>New goal</Overline>
-          <T v="h1">What is your goal?</T>
+          <T v="h1">🎯 What is your goal?</T>
         </Rise>
         <Rise delay={60} style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
           {EXAMPLES.map((e) => (

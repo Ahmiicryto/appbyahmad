@@ -62,6 +62,7 @@ function Navigation() {
         <Stack.Screen name="settings" />
         <Stack.Screen name="notifications" />
         <Stack.Screen name="premium" />
+        <Stack.Screen name="profile" />
       </Stack>
       {blocked && (
         <View style={StyleSheet.absoluteFill}>

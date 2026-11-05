@@ -1,7 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { THEMES } from "../theme/themes";
+import { useColorScheme } from "react-native";
+import { makeTheme } from "../theme/themes";
 import { api, setAuthToken, setUnauthorizedHandler } from "./api";
 import { setErrorReportingToken } from "./errorReporting";
+import { logOutPurchases } from "./purchases";
 import { unregisterPushAsync } from "./push";
 import { getItem, setItem } from "./storage";
 
@@ -10,12 +12,15 @@ const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
   const [state, setState] = useState({ loading: true, token: null, user: null, profile: null });
-  // Lets onboarding preview a theme before it is saved.
+  // Lets onboarding preview a colour / light-dark choice before it is saved.
   const [previewTheme, setPreviewTheme] = useState(null);
+  const [previewAppearance, setPreviewAppearance] = useState(null);
+  const system = useColorScheme();
 
   const signOut = useCallback(async () => {
     // Stop push to this device before the token that authorizes the call is cleared.
     await unregisterPushAsync().catch(() => {});
+    await logOutPurchases();
     setAuthToken(null);
     setErrorReportingToken(null);
     await setItem(TOKEN_KEY, null);
@@ -40,11 +45,12 @@ export function AppProvider({ children }) {
     })();
   }, [signOut]);
 
-  const signIn = useCallback(async (mode, email, password) => {
+  // remember=false keeps the session only until the app is closed.
+  const signIn = useCallback(async (mode, email, password, { remember = true } = {}) => {
     const r = await api(mode === "register" ? "/auth/register" : "/auth/login", { method: "POST", body: { email, password } });
     setAuthToken(r.token);
     setErrorReportingToken(r.token);
-    await setItem(TOKEN_KEY, r.token);
+    await setItem(TOKEN_KEY, remember ? r.token : null);
     setState({ loading: false, token: r.token, user: r.user, profile: r.profile });
   }, []);
 
@@ -63,19 +69,23 @@ export function AppProvider({ children }) {
 
   const value = useMemo(() => {
     const themeKey = previewTheme || state.profile?.theme || "male";
+    const appearance = previewAppearance || state.profile?.appearance || "auto";
+    const mode = appearance === "auto" ? (system === "light" ? "light" : "dark") : appearance;
     return {
       ...state,
       signedIn: Boolean(state.token),
       onboarded: Boolean(state.profile?.onboarded),
-      theme: THEMES[themeKey] ?? THEMES.male,
+      theme: makeTheme(themeKey, mode),
       themeKey,
+      appearance,
       setPreviewTheme,
+      setPreviewAppearance,
       signIn,
       signOut,
       updateProfile,
       refreshUser
     };
-  }, [state, previewTheme, signIn, signOut, updateProfile, refreshUser]);
+  }, [state, previewTheme, previewAppearance, system, signIn, signOut, updateProfile, refreshUser]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

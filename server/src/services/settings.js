@@ -35,6 +35,9 @@ export const SETTINGS = {
     group: "app",
     label: "Features visible in the app"
   },
+  terms_url: { schema: z.url(), default: () => "", group: "app", label: "Terms of use link" },
+  privacy_url: { schema: z.url(), default: () => "", group: "app", label: "Privacy policy link" },
+  support_email: { schema: z.email(), default: () => "", group: "app", label: "Support email" },
   min_app_version: { schema: z.string().trim().regex(/^\d+\.\d+\.\d+$/), default: () => "1.0.0", group: "app", label: "Minimum app version" },
 
   // Payments (Stripe)

@@ -319,7 +319,7 @@ function LimitsCard({ settings, onSaved }) {
   );
 }
 
-const APP_KEYS = ["signup_open", "maintenance_mode", "maintenance_message", "announcement", "feature_flags", "min_app_version"];
+const APP_KEYS = ["signup_open", "maintenance_mode", "maintenance_message", "announcement", "feature_flags", "min_app_version", "terms_url", "privacy_url", "support_email"];
 function confirmApp(changes) {
   if (changes.maintenance_mode === true && !window.confirm("Turn on maintenance mode? People can't use the app until you turn it off.")) return false;
   if (changes.signup_open === false && !window.confirm("Close sign-ups? New people can't create accounts until you open them again.")) return false;
@@ -411,6 +411,11 @@ function AppCard({ settings, onSaved }) {
         placeholder="1.0.0"
         hint="Older app versions are asked to update before they can continue. Use the format 1.2.3."
       />
+      <div className="grid two">
+        <TextField k="terms_url" card={card} settings={settings} type="url" label="Terms of use link" placeholder="https://…" hint="Shown on sign-up and the plans screen. Apple requires it for subscriptions." />
+        <TextField k="privacy_url" card={card} settings={settings} type="url" label="Privacy policy link" placeholder="https://…" hint="Required by Apple and Google." />
+      </div>
+      <TextField k="support_email" card={card} settings={settings} type="email" label="Support email" placeholder="help@yourdomain.com" hint="Where Help &amp; support in the app sends people." />
     </Card>
   );
 }
