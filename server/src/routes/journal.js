@@ -12,7 +12,13 @@ journalRouter.use(requireAuth);
 
 const MOODS = ["happy", "good", "neutral", "sad", "stressed"];
 
-const view = (row) => ({ id: row.id, mood: row.mood, body: decrypt(row.body_enc), created_at: row.created_at });
+const view = (row) => ({
+  id: row.id,
+  mood: row.mood,
+  body: decrypt(row.body_enc),
+  reflection: row.reflection_enc ? JSON.parse(decrypt(row.reflection_enc)) : null,
+  created_at: row.created_at
+});
 
 journalRouter.get("/", async (req, res) => {
   const q = typeof req.query.q === "string" ? req.query.q.trim().toLowerCase() : "";
