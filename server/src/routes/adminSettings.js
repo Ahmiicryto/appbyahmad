@@ -5,6 +5,7 @@ import { requireAdmin, requireAuth } from "../lib/auth.js";
 import { badRequest } from "../lib/errors.js";
 import { logger } from "../logger.js";
 import { audit } from "../services/audit.js";
+import { testProvider } from "../services/aiProvider.js";
 import { SETTINGS, getSetting, setSetting, settingsForAdmin } from "../services/settings.js";
 
 export const adminSettingsRouter = Router();
@@ -75,6 +76,10 @@ adminSettingsRouter.patch("/", async (req, res) => {
 });
 
 adminSettingsRouter.post("/test-ai", async (req, res) => {
+  const which = req.body?.which === "fallback" ? "fallback" : "primary";
+  const provider = await getSetting(which === "fallback" ? "ai_fallback_provider" : "ai_provider");
+  // Claude keeps its dedicated check (precise error messages); every other provider uses the shared client.
+  if (which === "fallback" || provider !== "anthropic") return res.json(await testProvider(which));
   const apiKey = await getSetting("anthropic_api_key");
   const model = await getSetting("ai_model");
   if (!apiKey) return res.json({ ok: false, model, message: "No API key saved. Add your Anthropic API key, then test again." });

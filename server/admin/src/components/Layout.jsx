@@ -45,8 +45,8 @@ export function Layout({ me, onSignOut, children }) {
     <div className="shell">
       <aside className="side">
         <div className="brand">
-          <span className="brand-mark" aria-hidden="true">A</span>
-          <span>AppByAhmad Admin</span>
+          <img className="brand-mark" src="/admin/logo.png" alt="" aria-hidden="true" />
+          <span>Elauxi Admin</span>
         </div>
         <nav className="nav" aria-label="Admin">
           <NavLink to="/" end>Overview</NavLink>

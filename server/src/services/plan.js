@@ -1,9 +1,6 @@
-import Anthropic from "@anthropic-ai/sdk";
-import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
-import { query } from "../db/pool.js";
 import { logger } from "../logger.js";
-import { getSetting } from "./settings.js";
+import { aiConfigured, generateStructured, ProviderError } from "./aiProvider.js";
 
 // What the model must return. Ranges are enforced after parsing (normalizePlan).
 const PlanSchema = z.object({
@@ -23,21 +20,8 @@ Turn the user's goal into a realistic plan they can start today.
 - For fitness or nutrition goals, keep targets safe and gradual.
 - The summary is one or two encouraging sentences addressed to the user.`;
 
-// The API key and model are live settings: an admin can change them without a redeploy.
-let client;
-let clientKey;
-async function anthropic() {
-  const key = await getSetting("anthropic_api_key");
-  if (!client || clientKey !== key) {
-    client = new Anthropic({ apiKey: key });
-    clientKey = key;
-  }
-  return client;
-}
-
-export async function aiEnabled() {
-  return Boolean((await getSetting("ai_enabled")) && (await getSetting("anthropic_api_key")));
-}
+// Provider, model and keys are live settings (admin → Settings → AI), no redeploy needed.
+export const aiEnabled = aiConfigured;
 
 export async function generatePlan({ userId, goal, profile, today }) {
   if (await aiEnabled()) {
@@ -70,33 +54,21 @@ async function aiPlan({ userId, goal, profile, today }) {
         }
       : null
   };
-  const model = await getSetting("ai_model");
-  const response = await (await anthropic()).beta.messages.parse({
-    model,
-    max_tokens: 16000,
-    // If the main model declines, the API re-runs the request on a fallback model.
-    betas: ["server-side-fallback-2026-07-01"],
-    fallbacks: "default",
-    output_config: { format: zodOutputFormat(PlanSchema), effort: "low" },
-    system: SYSTEM,
-    messages: [{ role: "user", content: `Create my plan.\n\n${JSON.stringify(facts, null, 2)}` }]
-  });
-  await recordUsage(userId, "goal_plan", response);
-  if (response.stop_reason === "refusal") return null;
-  return response.parsed_output ?? null;
+  try {
+    return await generateStructured({
+      system: SYSTEM,
+      content: `Create my plan.\n\n${JSON.stringify(facts, null, 2)}`,
+      schema: PlanSchema,
+      effort: "low",
+      userId,
+      kind: "goal_plan"
+    });
+  } catch (err) {
+    if (err instanceof ProviderError && err.kind === "refusal") return null;
+    throw err;
+  }
 }
 
-export async function recordUsage(userId, kind, response) {
-  await query("INSERT INTO ai_usage (user_id, kind, model, input_tokens, output_tokens) VALUES ($1, $2, $3, $4, $5)", [
-    userId,
-    kind,
-    response.model ?? (await getSetting("ai_model")),
-    response.usage?.input_tokens ?? 0,
-    response.usage?.output_tokens ?? 0
-  ]).catch((err) => logger.warn({ err: err.message }, "failed to record AI usage"));
-}
-
-// Works with no AI key so the app is usable from day one.
 export function templatePlan(goal) {
   const t = goal.title.trim();
   return {

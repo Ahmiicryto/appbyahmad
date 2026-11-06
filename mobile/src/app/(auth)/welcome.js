@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import { Linking, View } from "react-native";
 import { Icon } from "../../components/icons";
-import { Button, Glass, IconTile, Ring, Rise, Screen, T } from "../../components/ui";
+import { Button, Glass, IconTile, Logo, Ring, Rise, Screen, T } from "../../components/ui";
 import { useTheme } from "../../lib/AppContext";
 import { useAppConfig } from "../../lib/appConfig";
 
@@ -16,11 +16,12 @@ export default function Welcome() {
   const { config } = useAppConfig();
   return (
     <Screen>
-      <Rise style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 4 }}>
-        <View style={{ width: 34, height: 34, borderRadius: 11, backgroundColor: t.acc, borderWidth: 1, borderColor: t.pbd, alignItems: "center", justifyContent: "center" }}>
-          <T v="h3" color={t.onAcc}>A</T>
+      <Rise style={{ flexDirection: "row", alignItems: "center", gap: 12, marginTop: 4 }}>
+        <Logo size={44} />
+        <View>
+          <T v="h3" style={{ fontSize: 18, letterSpacing: 2 }}>ELAUXI</T>
+          <T v="small" muted>Your Everyday Superpower.</T>
         </View>
-        <T v="h3">AppByAhmad</T>
       </Rise>
 
       <Rise delay={80} style={{ alignItems: "center", paddingVertical: 18 }}>

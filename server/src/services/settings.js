@@ -9,7 +9,25 @@ import { logger } from "../logger.js";
 export const SETTINGS = {
   // AI
   anthropic_api_key: { secret: true, schema: z.string().trim().min(10).max(500), env: () => config.ANTHROPIC_API_KEY, group: "ai", label: "Anthropic API key" },
-  ai_model: { schema: z.string().trim().min(3).max(100), default: () => config.AI_MODEL, group: "ai", label: "AI model" },
+  ai_provider: {
+    schema: z.enum(["anthropic", "openai", "xai", "gemini", "deepseek", "groq", "mistral", "openrouter", "custom"]),
+    default: () => "anthropic", group: "ai", label: "AI provider"
+  },
+  ai_model: { schema: z.string().trim().min(2).max(120), default: () => config.AI_MODEL, group: "ai", label: "AI model" },
+  ai_fallback_provider: {
+    schema: z.enum(["none", "anthropic", "openai", "xai", "gemini", "deepseek", "groq", "mistral", "openrouter", "custom"]),
+    default: () => "none", group: "ai", label: "Backup AI provider"
+  },
+  ai_fallback_model: { schema: z.string().trim().max(120), default: () => "", group: "ai", label: "Backup AI model" },
+  openai_api_key: { secret: true, schema: z.string().trim().min(10).max(500), group: "ai", label: "OpenAI API key" },
+  xai_api_key: { secret: true, schema: z.string().trim().min(10).max(500), group: "ai", label: "xAI (Grok) API key" },
+  gemini_api_key: { secret: true, schema: z.string().trim().min(10).max(500), group: "ai", label: "Google Gemini API key" },
+  deepseek_api_key: { secret: true, schema: z.string().trim().min(10).max(500), group: "ai", label: "DeepSeek API key" },
+  groq_api_key: { secret: true, schema: z.string().trim().min(10).max(500), group: "ai", label: "Groq API key" },
+  mistral_api_key: { secret: true, schema: z.string().trim().min(10).max(500), group: "ai", label: "Mistral API key" },
+  openrouter_api_key: { secret: true, schema: z.string().trim().min(10).max(500), group: "ai", label: "OpenRouter API key" },
+  custom_ai_api_key: { secret: true, schema: z.string().trim().min(4).max(500), group: "ai", label: "Custom provider API key" },
+  custom_ai_base_url: { schema: z.url().refine((u) => u.startsWith("https://"), "Use an https:// URL"), default: () => "", group: "ai", label: "Custom provider API URL" },
   ai_enabled: { schema: z.boolean(), default: () => true, group: "ai", label: "AI features on" },
 
   // Plans & limits

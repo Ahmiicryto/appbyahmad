@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "AppByAhmad",
+    "name": "Elauxi",
     "slug": "appbyahmad",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -12,7 +12,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#0A0E15",
+        "backgroundColor": "#040212",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -21,7 +21,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "output": "single"
+      "output": "single",
+      "name": "Elauxi",
+      "shortName": "Elauxi",
+      "themeColor": "#040212",
+      "description": "Your Everyday Superpower."
     },
     "scheme": "appbyahmad",
     "plugins": [
@@ -35,10 +39,21 @@
           "cameraPermission": "AppByAhmad uses the camera so you can take a profile picture.",
           "microphonePermission": false
         }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 220,
+          "resizeMode": "contain",
+          "backgroundColor": "#040212"
+        }
       ]
     ],
     "extra": {
       "apiUrl": "https://appbyahmad-production.up.railway.app"
-    }
+    },
+    "description": "Elauxi — Your Everyday Superpower. Goals, daily plans, journal and an AI coach in one app.",
+    "backgroundColor": "#040212"
   }
 }

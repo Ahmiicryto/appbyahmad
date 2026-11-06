@@ -1,34 +1,16 @@
-// AI features built on Claude: assistant chat, "Plan my day", journal reflections and the weekly review.
+// AI features: coach chat, "Plan my day", journal reflections and the weekly review.
 // Every call is grounded in the user's own data (profile, goals, tasks, moods), counted in ai_usage
 // for the admin dashboard, and limited per day by plan (admin → Settings → Limits).
-import Anthropic from "@anthropic-ai/sdk";
-import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+// The provider (Claude, ChatGPT, Grok, Gemini, …) is chosen in admin → Settings → AI.
 import { one, query } from "../db/pool.js";
 import { HttpError, paymentRequired } from "../lib/errors.js";
 import { addDays, todayIn } from "../lib/dates.js";
-import { logger } from "../logger.js";
+import { aiConfigured, generateStructured, generateText, ProviderError, setAnthropicClientForTests } from "./aiProvider.js";
 import { lifeScore } from "./lifeScore.js";
-import { aiEnabled, recordUsage } from "./plan.js";
 import { getSetting } from "./settings.js";
 
-// If the main model declines (safety classifier), the API re-runs the request on a fallback model.
-const FALLBACK = { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" };
-
-let client;
-let clientKey;
-let testClient = null;
-// Tests inject a fake client; nothing in tests reaches the real API.
-export const setAiClientForTests = (c) => (testClient = c);
-
-async function anthropic() {
-  if (testClient) return testClient;
-  const key = await getSetting("anthropic_api_key");
-  if (!client || clientKey !== key) {
-    client = new Anthropic({ apiKey: key, timeout: 90_000, maxRetries: 1 });
-    clientKey = key;
-  }
-  return client;
-}
+// Tests inject a fake Claude client; nothing in tests reaches a real API.
+export const setAiClientForTests = setAnthropicClientForTests;
 
 export class AiUnavailable extends HttpError {
   constructor(msg = "The AI coach is turned off right now. Please try again later.") {
@@ -38,7 +20,7 @@ export class AiUnavailable extends HttpError {
 
 // Throws unless AI is on and the user has requests left today.
 export async function requireAi(user) {
-  if (!testClient && !(await aiEnabled())) throw new AiUnavailable();
+  if (!(await aiConfigured())) throw new AiUnavailable();
   const flags = await getSetting("feature_flags");
   if (flags && flags.assistant === false && user.role !== "admin") throw new AiUnavailable("The AI coach isn't available yet.");
   const limit = await getSetting(user.isPremium ? "premium_ai_requests_per_day" : "free_ai_requests_per_day");
@@ -63,58 +45,32 @@ export async function usageToday(user) {
   return { used: n, limit, remaining: Math.max(0, limit - n) };
 }
 
-function check(response) {
-  if (response.stop_reason === "refusal") {
-    throw new HttpError(422, "The coach can't help with that request. Try asking another way.", "ai_refused");
-  }
-}
-
-function wrap(err) {
+// Provider problems become messages people can act on (details stay in the server log).
+function friendly(err) {
   if (err instanceof HttpError) return err;
-  if (err instanceof Anthropic.RateLimitError) return new HttpError(503, "The AI coach is busy. Try again in a minute.", "ai_busy");
-  if (err instanceof Anthropic.AuthenticationError) return new AiUnavailable();
-  logger.warn({ err: err?.message, status: err?.status }, "AI request failed");
+  if (err instanceof ProviderError) {
+    if (err.kind === "refusal") return new HttpError(422, "The coach can't help with that request. Try asking another way.", "ai_refused");
+    if (err.kind === "rate") return new HttpError(503, "The AI coach is busy. Try again in a minute.", "ai_busy");
+    if (err.kind === "auth" || err.kind === "model") return new AiUnavailable();
+  }
   return new HttpError(502, "The AI coach couldn't answer just now. Try again in a minute.", "ai_failed");
 }
 
 // Structured JSON answer validated against a zod schema.
 export async function askStructured({ userId, kind, system, content, schema, effort = "low" }) {
   try {
-    const response = await (await anthropic()).beta.messages.parse({
-      model: await getSetting("ai_model"),
-      max_tokens: 16000,
-      ...FALLBACK,
-      output_config: { format: zodOutputFormat(schema), effort },
-      system,
-      messages: [{ role: "user", content }]
-    });
-    await recordUsage(userId, kind, response);
-    check(response);
-    if (!response.parsed_output) throw new HttpError(502, "The AI coach returned an unexpected answer. Try again.", "ai_failed");
-    return response.parsed_output;
+    return await generateStructured({ system, content, schema, effort, userId, kind });
   } catch (err) {
-    throw wrap(err);
+    throw friendly(err);
   }
 }
 
 // Free-text reply for the chat.
 export async function askText({ userId, kind, system, messages, effort = "low" }) {
   try {
-    const response = await (await anthropic()).beta.messages.create({
-      model: await getSetting("ai_model"),
-      max_tokens: 16000,
-      ...FALLBACK,
-      output_config: { effort },
-      system,
-      messages
-    });
-    await recordUsage(userId, kind, response);
-    check(response);
-    const text = response.content.filter((b) => b.type === "text").map((b) => b.text).join("\n").trim();
-    if (!text) throw new HttpError(502, "The AI coach didn't reply. Try again.", "ai_failed");
-    return text;
+    return await generateText({ system, messages, effort, userId, kind });
   } catch (err) {
-    throw wrap(err);
+    throw friendly(err);
   }
 }
 
@@ -157,7 +113,7 @@ export async function userContext(userId) {
   };
 }
 
-export const COACH_STYLE = `You are the personal coach inside AppByAhmad, a life-planning app (goals, daily tasks, journal, Life Score).
+export const COACH_STYLE = `You are the personal coach inside Elauxi ("Your Everyday Superpower"), a life-planning app (goals, daily tasks, journal, Life Score).
 Voice: warm, direct and practical, like a thoughtful mentor. Short paragraphs, plain words, no emoji, no hype.
 Ground every suggestion in the user's own data below; never invent facts about them. If data is missing, say what would help.
 Money: general guidance only, not regulated financial advice. Health and fitness: safe, gradual targets; suggest a professional for medical concerns.

@@ -99,7 +99,7 @@ export default function Profile() {
     ] },
     { title: "Support", items: [
       ["help", "Help & support", "", support ? () => Linking.openURL(`mailto:${support}`) : null],
-      ["gift", "Invite friends", "", () => Share.share({ message: "I'm planning my life with AppByAhmad — goals, money, fitness and journal in one daily plan. Try it!" }).catch(() => {})],
+      ["gift", "Invite friends", "", () => Share.share({ message: "I'm using Elauxi to plan my days, track my goals and get coached by AI. Your Everyday Superpower — try it!" }).catch(() => {})],
       ["file", "Terms of use", "", config.legal?.termsUrl ? () => Linking.openURL(config.legal.termsUrl) : null],
       ["lock", "Privacy policy", "", config.legal?.privacyUrl ? () => Linking.openURL(config.legal.privacyUrl) : null]
     ].filter((r) => r[3]) }
@@ -222,7 +222,7 @@ export default function Profile() {
       ))}
 
       <Button title="Sign out" icon="logout" variant="secondary" onPress={signOut} />
-      <T v="tiny" muted style={{ textAlign: "center" }}>AppByAhmad · Version {Constants.expoConfig?.version ?? "1.0.0"}</T>
+      <T v="tiny" muted style={{ textAlign: "center" }}>Elauxi · Version {Constants.expoConfig?.version ?? "1.0.0"}</T>
 
       <Modal visible={sheet} transparent animationType="slide" onRequestClose={() => setSheet(false)}>
         <Pressable style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.45)" }} onPress={() => setSheet(false)} accessibilityLabel="Close" />

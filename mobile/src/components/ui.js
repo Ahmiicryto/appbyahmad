@@ -341,6 +341,18 @@ export function Segmented({ options, value, onChange, label }) {
   );
 }
 
+// Elauxi app icon as a rounded tile (works on light and dark backgrounds).
+const LOGO = require("../../assets/logo.png");
+export function Logo({ size = 40 }) {
+  return (
+    <Image
+      source={LOGO}
+      accessibilityLabel="Elauxi"
+      style={{ width: size, height: size, borderRadius: size * 0.24, shadowColor: "#5B3DF5", shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } }}
+    />
+  );
+}
+
 // Photo, emoji, or initials on a gradient.
 export function Avatar({ profile, size = 46, ring }) {
   const t = useTheme();

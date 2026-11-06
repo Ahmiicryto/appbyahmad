@@ -27,8 +27,8 @@ export function Login({ onSignedIn }) {
     <div className="center">
       <form className="card" onSubmit={submit} style={{ width: "min(380px, calc(100vw - 32px))", display: "grid", gap: 14 }}>
         <div className="brand" style={{ padding: 0 }}>
-          <span className="brand-mark" aria-hidden="true">A</span>
-          <span>AppByAhmad Admin</span>
+          <img className="brand-mark" src="/admin/logo.png" alt="" aria-hidden="true" />
+          <span>Elauxi Admin</span>
         </div>
         <h1>Sign in</h1>
         {error && <div className="error" role="alert">{error}</div>}

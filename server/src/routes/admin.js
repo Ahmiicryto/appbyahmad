@@ -43,7 +43,7 @@ adminRouter.get("/stats", async (req, res) => {
     signups,
     themes,
     categories,
-    system: { aiEnabled: await aiEnabled(), aiModel: await getSetting("ai_model"), signupOpen: await getSetting("signup_open") }
+    system: { aiEnabled: await aiEnabled(), aiProvider: await getSetting("ai_provider"), aiModel: await getSetting("ai_model"), signupOpen: await getSetting("signup_open") }
   });
 });
 

@@ -255,12 +255,12 @@ function SecretField({ k, card, settings, label, hint, placeholder }) {
   );
 }
 
-function TestButton({ path, label, render, disabled }) {
+function TestButton({ path, label, render, disabled, body }) {
   const [state, setState] = useState(null);
   async function run() {
     setState("running");
     try {
-      setState(await api(path, { method: "POST" }));
+      setState(await api(path, { method: "POST", body: body ?? {} }));
     } catch (err) {
       setState({ ok: false, message: err.message });
     }
@@ -281,27 +281,93 @@ function TestButton({ path, label, render, disabled }) {
 
 // ---------- cards ----------
 
-const AI_KEYS = ["anthropic_api_key", "ai_model", "ai_enabled"];
+const PROVIDERS = [
+  ["anthropic", "Claude (Anthropic)", "anthropic_api_key", "console.anthropic.com → API keys (starts with sk-ant-)"],
+  ["openai", "ChatGPT (OpenAI)", "openai_api_key", "platform.openai.com → API keys (starts with sk-)"],
+  ["xai", "Grok (xAI)", "xai_api_key", "console.x.ai → API keys"],
+  ["gemini", "Gemini (Google)", "gemini_api_key", "aistudio.google.com → Get API key"],
+  ["deepseek", "DeepSeek", "deepseek_api_key", "platform.deepseek.com → API keys"],
+  ["groq", "Groq", "groq_api_key", "console.groq.com → API keys"],
+  ["mistral", "Mistral", "mistral_api_key", "console.mistral.ai → API keys"],
+  ["openrouter", "OpenRouter (hundreds of models, one key)", "openrouter_api_key", "openrouter.ai → Keys"],
+  ["custom", "Custom (any OpenAI-compatible API)", "custom_ai_api_key", "from your provider"]
+];
+const PROVIDER = Object.fromEntries(PROVIDERS.map(([id, label, key, where]) => [id, { label, key, where }]));
+const AI_KEYS = ["ai_enabled", "ai_provider", "ai_model", "ai_fallback_provider", "ai_fallback_model", "custom_ai_base_url", ...PROVIDERS.map((p) => p[2])];
+
+function SelectField({ k, card, label, hint, options }) {
+  return (
+    <label className="field">
+      {label}
+      <select value={card.draft[k] ?? ""} onChange={(e) => card.set(k, e.target.value)} aria-invalid={Boolean(card.errors[k])}>
+        {options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+      </select>
+      {hint && <Hint>{hint}</Hint>}
+      <FieldError messages={card.errors[k]} />
+    </label>
+  );
+}
+
 function AiCard({ settings, onSaved }) {
   const card = useCard(AI_KEYS, settings, onSaved);
+  const provider = card.draft.ai_provider || "anthropic";
+  const backup = card.draft.ai_fallback_provider || "none";
+  const p = PROVIDER[provider];
+  const b = PROVIDER[backup];
+  const usesCustom = provider === "custom" || backup === "custom";
   return (
     <Card
-      title="AI"
-      desc="Used for goal plans and the assistant. Save a key first, then test it."
+      title="AI provider"
+      desc="Powers the coach chat, Plan my day, journal reflections, weekly reviews and goal plans. Choose any provider, paste its key, save, then test."
       card={card}
       extra={
-        <TestButton
-          path="/admin/settings/test-ai"
-          label="Test AI connection"
-          disabled={card.dirty}
-          render={(r) => `Connected. ${r.model} replied.`}
-        />
+        <>
+          <TestButton path="/admin/settings/test-ai" label="Test main provider" disabled={card.dirty} render={(r) => `Connected. ${r.model} replied.`} />
+          {backup !== "none" && <TestButton path="/admin/settings/test-ai" body={{ which: "fallback" }} label="Test backup" disabled={card.dirty} render={(r) => `Backup connected. ${r.model} replied.`} />}
+        </>
       }
     >
-      <SecretField k="anthropic_api_key" card={card} settings={settings} label="API key" hint="From console.anthropic.com → API keys. Starts with sk-ant-." />
-      <TextField k="ai_model" card={card} settings={settings} label="Model" list="ai-models" hint="Pick a suggestion or type any Claude model ID." />
-      <datalist id="ai-models">{MODELS.map((m) => <option key={m} value={m} />)}</datalist>
-      <BoolField k="ai_enabled" card={card} settings={settings} label="AI features on" hint="When off, plans use the built-in template and no AI calls are made." />
+      <BoolField k="ai_enabled" card={card} settings={settings} label="AI features on" hint="When off, no AI calls are made: goal plans use the built-in template and the coach is hidden." />
+      <div className="grid two">
+        <SelectField k="ai_provider" card={card} label="Main provider" options={PROVIDERS.map(([id, label]) => [id, label])} />
+        <TextField
+          k="ai_model"
+          card={card}
+          settings={settings}
+          label="Model"
+          list={provider === "anthropic" ? "claude-models" : undefined}
+          placeholder={provider === "anthropic" ? "claude-opus-5-5" : "Exact model name from your provider"}
+          hint={provider === "anthropic" ? "Pick a suggestion or type any Claude model ID." : `Copy the exact model name from ${p.where.split(" →")[0]}. Test after saving.`}
+        />
+      </div>
+      <datalist id="claude-models">{MODELS.map((m) => <option key={m} value={m} />)}</datalist>
+      <SecretField k={p.key} card={card} settings={settings} label={`${p.label} API key`} hint={`Get it at ${p.where}.`} placeholder={settings[p.key].configured ? "Replace key" : "Paste key"} />
+      {usesCustom && (
+        <TextField k="custom_ai_base_url" card={card} settings={settings} type="url" label="Custom provider API URL" placeholder="https://api.example.com/v1" hint="The base URL of an OpenAI-compatible API (the app calls /chat/completions on it)." />
+      )}
+
+      <fieldset style={{ border: "1px solid var(--line)", borderRadius: 12, padding: 14, display: "grid", gap: 14 }}>
+        <legend style={{ fontWeight: 700, fontSize: 13, padding: "0 6px" }}>Backup provider (optional)</legend>
+        <p className="muted" style={{ margin: 0, fontSize: 13 }}>If the main provider is down, out of credit or declines a request, the backup answers instead.</p>
+        <div className="grid two">
+          <SelectField k="ai_fallback_provider" card={card} label="Backup provider" options={[["none", "No backup"], ...PROVIDERS.map(([id, label]) => [id, label])]} />
+          {backup !== "none" && (
+            <TextField k="ai_fallback_model" card={card} settings={settings} label="Backup model" list={backup === "anthropic" ? "claude-models" : undefined} placeholder="Exact model name" />
+          )}
+        </div>
+        {backup !== "none" && backup !== provider && (
+          <SecretField k={b.key} card={card} settings={settings} label={`${b.label} API key`} hint={`Get it at ${b.where}.`} placeholder={settings[b.key].configured ? "Replace key" : "Paste key"} />
+        )}
+      </fieldset>
+
+      <details>
+        <summary style={{ cursor: "pointer", fontWeight: 600, fontSize: 13 }}>All saved provider keys</summary>
+        <div style={{ display: "grid", gap: 14, marginTop: 12 }}>
+          {PROVIDERS.filter(([id]) => id !== provider && id !== backup).map(([id, label, key, where]) => (
+            <SecretField key={key} k={key} card={card} settings={settings} label={`${label} API key`} hint={`Get it at ${where}.`} placeholder={settings[key].configured ? "Replace key" : "Paste key"} />
+          ))}
+        </div>
+      </details>
     </Card>
   );
 }
