@@ -8,7 +8,7 @@ import { api } from "../../lib/api";
 import { useTheme } from "../../lib/AppContext";
 import { confirm } from "../../lib/confirm";
 import { useLoad } from "../../lib/useLoad";
-import { areaColor, areaEmoji } from "../../theme/themes";
+import { areaColor } from "../../theme/themes";
 
 const NEXT = { upcoming: "in_progress", in_progress: "done", done: "upcoming" };
 const LABEL = { upcoming: "Upcoming", in_progress: "In progress", done: "Done" };
@@ -51,7 +51,7 @@ export default function GoalDetail() {
 
       <Rise>
         <Card>
-          <Overline color={color}>{areaEmoji(goal.category)} {goal.category}</Overline>
+          <Overline color={color}>{goal.category}</Overline>
           <T v="h2">{goal.title}</T>
           {goal.target ? <T v="small" muted>Target: {goal.target}</T> : null}
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>

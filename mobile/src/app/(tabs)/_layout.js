@@ -16,7 +16,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="goals" options={{ title: "Goals", tabBarIcon: ({ color }) => <GoalsIcon color={color} /> }} />
       <Tabs.Screen name="life" options={{ title: "Life", tabBarIcon: ({ color }) => <LifeIcon color={color} /> }} />
       <Tabs.Screen name="progress" options={{ title: "Progress", tabBarIcon: ({ color }) => <ProgressIcon color={color} /> }} />
-      <Tabs.Screen name="assistant" options={{ title: "Assistant", tabBarIcon: ({ color }) => <AssistantIcon color={color} /> }} />
+      <Tabs.Screen name="assistant" options={{ title: "Coach", tabBarIcon: ({ color }) => <AssistantIcon color={color} /> }} />
     </Tabs>
   );
 }

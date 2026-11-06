@@ -306,14 +306,16 @@ function AiCard({ settings, onSaved }) {
   );
 }
 
-const LIMIT_KEYS = ["free_active_goals", "free_ai_plans_per_month"];
+const LIMIT_KEYS = ["free_active_goals", "free_ai_plans_per_month", "free_ai_requests_per_day", "premium_ai_requests_per_day"];
 function LimitsCard({ settings, onSaved }) {
   const card = useCard(LIMIT_KEYS, settings, onSaved);
   return (
-    <Card title="Plans & limits" desc="What the free plan includes. Premium has no limits." card={card}>
+    <Card title="Plans & limits" desc="What each plan includes. AI requests cover the coach chat, Plan my day, journal reflections and weekly reviews." card={card}>
       <div className="grid two">
         <TextField k="free_active_goals" card={card} settings={settings} type="number" inputMode="numeric" label="Active goals on the free plan" hint="0–100" />
         <TextField k="free_ai_plans_per_month" card={card} settings={settings} type="number" inputMode="numeric" label="AI plans per month on the free plan" hint="0–1000. After this, plans use the template." />
+        <TextField k="free_ai_requests_per_day" card={card} settings={settings} type="number" inputMode="numeric" label="AI coach requests per day (free)" hint="0–1000. Free users then see an upgrade prompt." />
+        <TextField k="premium_ai_requests_per_day" card={card} settings={settings} type="number" inputMode="numeric" label="AI coach requests per day (Premium)" hint="1–5000. A safety cap to control AI costs." />
       </div>
     </Card>
   );

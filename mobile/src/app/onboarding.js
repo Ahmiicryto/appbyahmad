@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
-import { Button, Card, Emoji, Field, Glass, Overline, Ring, Rise, Screen, Segmented, T } from "../components/ui";
+import { Button, Card, Field, Glass, Overline, Ring, Rise, Screen, Segmented, T } from "../components/ui";
 import { useApp, useTheme } from "../lib/AppContext";
 
 const GENDERS = [
@@ -10,9 +10,9 @@ const GENDERS = [
   { gender: "unspecified", theme: "neutral", label: "Prefer not to say", sub: "Starts with steel blue", sw: ["#8299B7", "#582C38"] }
 ];
 const APPEARANCES = [
-  { value: "auto", label: "Auto", emoji: "🌗" },
-  { value: "light", label: "Light", emoji: "☀️" },
-  { value: "dark", label: "Dark", emoji: "🌙" }
+  { value: "auto", label: "Auto", icon: "contrast" },
+  { value: "light", label: "Light", icon: "sun" },
+  { value: "dark", label: "Dark", icon: "moon" }
 ];
 const STEPS = 4;
 
@@ -76,10 +76,7 @@ export default function Onboarding() {
 
         {step === 1 && (
           <Rise key="s1" style={{ gap: 12 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <T v="h1">Make it yours</T>
-              <Emoji e="🎨" size={24} anim="bob" />
-            </View>
+            <T v="h1">Make it yours</T>
             <T muted>Pick a color and how the app looks. You can change both anytime in Settings.</T>
             <Overline>Your color</Overline>
             <View accessibilityRole="radiogroup" style={{ gap: 8 }}>
@@ -125,7 +122,7 @@ export default function Onboarding() {
                 </Ring>
                 <View style={{ flex: 1, gap: 4 }}>
                   <Overline>Live preview</Overline>
-                  <T style={{ fontWeight: "800" }}>{f.name ? `Good morning, ${f.name.trim()} 👋` : "Good morning 👋"}</T>
+                  <T style={{ fontWeight: "800" }}>{f.name ? `Good morning, ${f.name.trim()}` : "Good morning"}</T>
                   <T v="small" muted>3 priorities waiting for you</T>
                 </View>
               </Card>
@@ -158,7 +155,7 @@ export default function Onboarding() {
 
         {error ? <T color={t.bad} style={{ fontWeight: "700" }}>{error}</T> : null}
         <View style={{ gap: 10, marginTop: 8 }}>
-          <Button title={step === STEPS - 1 ? "Build my plan" : "Continue"} pulse={canNext} disabled={!canNext} busy={busy} onPress={next} />
+          <Button title={step === STEPS - 1 ? "Build my plan" : "Continue"} disabled={!canNext} busy={busy} onPress={next} />
           {step > 0 && <Button title="Back" variant="secondary" onPress={() => setStep(step - 1)} />}
           <T v="small" muted style={{ textAlign: "center" }}>We only use this to personalize your plan.</T>
         </View>

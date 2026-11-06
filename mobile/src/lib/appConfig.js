@@ -9,7 +9,7 @@ const REFRESH_MS = 5 * 60 * 1000;
 export const DEFAULT_CONFIG = {
   maintenance: { on: false, message: "" },
   announcement: null,
-  features: { journal: true, money: false, fitness: false, nutrition: false, career: false, future_me: false, decisions: false, assistant: false },
+  features: { journal: true, money: false, fitness: false, nutrition: false, career: false, future_me: false, decisions: false, assistant: true },
   minAppVersion: "0.0.0",
   signupOpen: true,
   plansAvailable: 0,

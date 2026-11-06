@@ -1,28 +1,28 @@
 import { router } from "expo-router";
 import { Pressable, View } from "react-native";
-import { Card, Rise, Screen, T } from "../../components/ui";
+import { Card, IconTile, Rise, Screen, T } from "../../components/ui";
 import { useTheme } from "../../lib/AppContext";
 import { useAppConfig } from "../../lib/appConfig";
 
 // Screens that exist in the app today. An area is only tappable when it is switched on AND has a screen.
-const ROUTES = { journal: "/journal" };
+const ROUTES = { journal: "/journal", assistant: "/assistant" };
 
 export default function Life() {
   const t = useTheme();
   const { config } = useAppConfig();
   const features = config.features ?? {};
   const areas = [
-    { key: "journal", e: "📓", title: "Journal", sub: "Private place for your feelings", color: t.ink },
-    { key: "money", e: "💰", title: "Money", sub: "Income, spending, savings goals", color: t.c2 },
-    { key: "fitness", e: "💪", title: "Fitness", sub: "Your weekly workout plan", color: t.c3 },
-    { key: "nutrition", e: "🥗", title: "Nutrition", sub: "Calories, macros and meals", color: t.c3 },
-    { key: "career", e: "💼", title: "Career", sub: "Roadmap, résumé, job tracker", color: t.c4 },
-    { key: "future_me", e: "✨", title: "Future Me", sub: "The person you want to become", color: t.ink },
-    { key: "decisions", e: "⚖️", title: "Decisions", sub: "Compare options with your data", color: t.c4 }
+    { key: "journal", icon: "book", title: "Journal", sub: "Private place for your feelings", color: t.ink },
+    { key: "money", icon: "wallet", title: "Money", sub: "Income, spending, savings goals", color: t.c2 },
+    { key: "fitness", icon: "dumbbell", title: "Fitness", sub: "Your weekly workout plan", color: t.c3 },
+    { key: "nutrition", icon: "leaf", title: "Nutrition", sub: "Calories, macros and meals", color: t.c3 },
+    { key: "career", icon: "briefcase", title: "Career", sub: "Roadmap, résumé, job tracker", color: t.c4 },
+    { key: "future_me", icon: "sparkles", title: "Future Me", sub: "The person you want to become", color: t.ink },
+    { key: "decisions", icon: "scale", title: "Decisions", sub: "Compare options with your data", color: t.c4 }
   ].map((a) => {
     const on = Boolean(features[a.key]);
     const href = on ? ROUTES[a.key] : undefined;
-    return { ...a, href, tag: href ? null : on ? "AVAILABLE SOON" : "COMING NEXT" };
+    return { ...a, href, tag: href ? null : on ? "Available soon" : "Coming next" };
   });
 
   return (
@@ -38,13 +38,13 @@ export default function Life() {
               disabled={!a.href}
               onPress={() => router.push(a.href)}
               accessibilityRole={a.href ? "link" : "text"}
-              accessibilityLabel={a.href ? a.title : `${a.title}, ${a.tag === "AVAILABLE SOON" ? "available soon" : "coming next"}`}
+              accessibilityLabel={a.href ? a.title : `${a.title}, ${a.tag === "Available soon" ? "available soon" : "coming next"}`}
             >
-              <Card style={{ minHeight: 120, opacity: a.href ? 1 : a.tag === "AVAILABLE SOON" ? 0.85 : 0.65 }}>
-                <View style={{ width: 40, height: 40, borderRadius: 13, backgroundColor: t.soft, alignItems: "center", justifyContent: "center" }}><T style={{ fontSize: 20 }}>{a.e}</T></View>
+              <Card style={{ minHeight: 120, opacity: a.href ? 1 : a.tag === "Available soon" ? 0.85 : 0.65 }}>
+                <IconTile name={a.icon} color={a.color} size={40} />
                 <T v="h3">{a.title}</T>
                 <T v="small" muted>{a.sub}</T>
-                {a.tag && <T v="tiny" color={a.tag === "AVAILABLE SOON" ? t.ink : undefined} muted={a.tag !== "AVAILABLE SOON"}>{a.tag}</T>}
+                {a.tag && <T v="tiny" color={a.tag === "Available soon" ? t.ink : undefined} muted={a.tag !== "AVAILABLE SOON"}>{a.tag}</T>}
               </Card>
             </Pressable>
           </Rise>

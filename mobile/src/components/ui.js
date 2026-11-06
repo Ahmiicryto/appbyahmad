@@ -6,6 +6,7 @@ import { ActivityIndicator, Animated, Easing, Image, Platform, Pressable, Scroll
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle, Defs, Path, RadialGradient, Stop } from "react-native-svg";
 import { useTheme } from "../lib/AppContext";
+import { Icon } from "./icons";
 
 const EASE = Easing.bezier(0.2, 0.8, 0.2, 1);
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -59,9 +60,9 @@ export function GlassBackground() {
   const t = useTheme();
   return (
     <View pointerEvents="none" style={[StyleSheet.absoluteFill, { overflow: "hidden", backgroundColor: t.bg }]}>
-      <Blob color={t.blob1} size={460} style={{ right: -160, top: -140 }} duration={7000} />
-      <Blob color={t.blob2} size={420} style={{ left: -190, top: 300 }} duration={9000} reverse />
-      <Blob color={t.blob3} size={360} style={{ right: -60, bottom: -140 }} duration={11000} />
+      <Blob color={t.blob1} size={460} style={{ right: -160, top: -140 }} duration={14000} />
+      <Blob color={t.blob2} size={420} style={{ left: -190, top: 300 }} duration={18000} reverse />
+      <Blob color={t.blob3} size={360} style={{ right: -60, bottom: -140 }} duration={22000} />
     </View>
   );
 }
@@ -98,6 +99,27 @@ export function T({ v = "body", color, muted, style, children, ...rest }) {
     >
       {children}
     </Text>
+  );
+}
+
+// Section heading: title with an optional action on the right.
+export function SectionTitle({ title, action, onAction }) {
+  const t = useTheme();
+  return (
+    <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", marginTop: 6 }}>
+      <T v="h3" style={{ fontSize: 17 }}>{title}</T>
+      {action ? <Pressable onPress={onAction} hitSlop={8} accessibilityRole="button"><T v="small" color={t.ink} style={{ fontWeight: "700" }}>{action}</T></Pressable> : null}
+    </View>
+  );
+}
+
+// Icon in a soft rounded tile, used for list rows.
+export function IconTile({ name, color, size = 36 }) {
+  const t = useTheme();
+  return (
+    <View style={{ width: size, height: size, borderRadius: size * 0.32, backgroundColor: t.soft, alignItems: "center", justifyContent: "center" }}>
+      <Icon name={name} color={color || t.ink} size={size * 0.5} />
+    </View>
   );
 }
 
@@ -161,70 +183,21 @@ export function Rise({ delay = 0, children, style }) {
   );
 }
 
-// ---------------------------------------------------------------- animated emoji
-
-const KINDS = {
-  wave: { duration: 2400, input: [0, 0.1, 0.2, 0.3, 0.4, 0.6, 1], rotate: ["0deg", "16deg", "-8deg", "16deg", "-8deg", "0deg", "0deg"] },
-  ring: { duration: 3000, input: [0, 0.8, 0.85, 0.9, 0.95, 1], rotate: ["0deg", "0deg", "-14deg", "14deg", "-14deg", "0deg"] },
-  shine: { duration: 3500, input: [0, 0.7, 0.8, 0.9, 1], rotate: ["0deg", "0deg", "-12deg", "10deg", "0deg"], scale: [1, 1, 1.15, 1.15, 1] },
-  bob: { duration: 1600, input: [0, 0.5, 1], translateY: [0, -4, 0], scale: [1, 1.12, 1] },
-  float: { duration: 3200, input: [0, 0.5, 1], translateY: [0, -8, 0], rotate: ["-6deg", "6deg", "-6deg"] },
-  flame: { duration: 1400, input: [0, 0.5, 1], scale: [1, 1.15, 1], rotate: ["0deg", "-6deg", "0deg"] },
-  pulse: { duration: 1800, input: [0, 0.5, 1], scale: [1, 1.1, 1] },
-  spin: { duration: 8000, input: [0, 1], rotate: ["0deg", "360deg"], linear: true }
-};
-
-export function Emoji({ e, size = 20, anim, delay = 0, style }) {
-  const a = useRef(new Animated.Value(0)).current;
-  const k = anim ? KINDS[anim] : null;
-  useEffect(() => {
-    if (!k) return undefined;
-    const loop = Animated.loop(Animated.timing(a, { toValue: 1, duration: k.duration, delay, easing: k.linear ? Easing.linear : Easing.inOut(Easing.ease), useNativeDriver: true }));
-    loop.start();
-    return () => loop.stop();
-  }, [a, k, delay]);
-  const transform = [];
-  if (k?.translateY) transform.push({ translateY: a.interpolate({ inputRange: k.input, outputRange: k.translateY }) });
-  if (k?.rotate) transform.push({ rotate: a.interpolate({ inputRange: k.input, outputRange: k.rotate }) });
-  if (k?.scale) transform.push({ scale: a.interpolate({ inputRange: k.input, outputRange: k.scale }) });
-  return (
-    <Animated.Text accessible={false} importantForAccessibility="no" style={[{ fontSize: size, lineHeight: size * 1.2, transform }, style]}>
-      {e}
-    </Animated.Text>
-  );
-}
-
 // ---------------------------------------------------------------- controls
 
-export function Button({ title, onPress, variant = "primary", disabled, busy, pulse, style, accessibilityLabel, emoji, small }) {
+export function Button({ title, onPress, variant = "primary", disabled, busy, style, accessibilityLabel, icon, small }) {
   const t = useTheme();
-  const glow = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    if (!pulse) return undefined;
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(glow, { toValue: 1, duration: 1300, useNativeDriver: true }),
-        Animated.timing(glow, { toValue: 0, duration: 1300, useNativeDriver: true })
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [pulse, glow]);
   const primary = variant === "primary";
   const danger = variant === "danger";
   const fg = primary ? t.onAcc : danger ? t.bad : t.text;
-  const h = small ? 42 : 54;
-  const inner = (
-    <>
-      {busy ? (
-        <ActivityIndicator color={fg} />
-      ) : (
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          {emoji ? <Text style={{ fontSize: small ? 15 : 17 }}>{emoji}</Text> : null}
-          <T v={small ? "small" : "h3"} color={fg} style={{ fontWeight: "800" }}>{title}</T>
-        </View>
-      )}
-    </>
+  const h = small ? 40 : 52;
+  const inner = busy ? (
+    <ActivityIndicator color={fg} />
+  ) : (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+      {icon ? <Icon name={icon} color={fg} size={small ? 16 : 18} /> : null}
+      <T v={small ? "small" : "h3"} color={fg} style={{ fontWeight: "700", letterSpacing: 0.1 }}>{title}</T>
+    </View>
   );
   return (
     <Pressable
@@ -233,30 +206,24 @@ export function Button({ title, onPress, variant = "primary", disabled, busy, pu
       accessibilityRole="button"
       accessibilityState={{ disabled: Boolean(disabled || busy), busy: Boolean(busy) }}
       accessibilityLabel={accessibilityLabel || title}
-      style={({ pressed }) => [{ opacity: disabled ? 0.45 : pressed ? 0.88 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] }, style]}
+      style={({ pressed }) => [{ opacity: disabled ? 0.45 : pressed ? 0.9 : 1, transform: [{ scale: pressed ? 0.985 : 1 }] }, style]}
     >
-      {pulse && !disabled && (
-        <Animated.View
-          pointerEvents="none"
-          style={[StyleSheet.absoluteFill, { borderRadius: 18, backgroundColor: t.glow, opacity: glow.interpolate({ inputRange: [0, 1], outputRange: [0, 0.55] }), transform: [{ scaleX: glow.interpolate({ inputRange: [0, 1], outputRange: [1, 1.04] }) }, { scaleY: glow.interpolate({ inputRange: [0, 1], outputRange: [1, 1.18] }) }] }]}
-        />
-      )}
       {primary ? (
-        <View style={{ minHeight: h, borderRadius: 18, alignItems: "center", justifyContent: "center", paddingHorizontal: 18, backgroundColor: t.acc, borderWidth: 1, borderColor: t.pbd }}>{inner}</View>
+        <View style={{ minHeight: h, borderRadius: small ? 14 : 16, alignItems: "center", justifyContent: "center", paddingHorizontal: small ? 14 : 18, backgroundColor: t.acc, borderWidth: 1, borderColor: t.pbd }}>{inner}</View>
       ) : (
-        <Glass radius={18} border={danger ? t.bad : undefined} style={{ minHeight: h, alignItems: "center", justifyContent: "center", paddingHorizontal: 18 }}>{inner}</Glass>
+        <Glass radius={small ? 14 : 16} border={danger ? t.bad : undefined} style={{ minHeight: h, alignItems: "center", justifyContent: "center", paddingHorizontal: small ? 14 : 18 }}>{inner}</Glass>
       )}
     </Pressable>
   );
 }
 
-export function Field({ label, error, style, emoji, right, valid, ...input }) {
+export function Field({ label, error, style, icon, right, valid, ...input }) {
   const t = useTheme();
   return (
     <View style={[{ gap: 6 }, style]}>
       {label ? <T v="small" muted style={{ fontWeight: "800" }}>{label}</T> : null}
       <Glass radius={16} border={error ? t.bad : valid ? t.good : undefined} style={{ flexDirection: "row", alignItems: "center", minHeight: 52, paddingHorizontal: 14, gap: 10 }}>
-        {emoji ? <Text style={{ fontSize: 17 }} accessible={false}>{emoji}</Text> : null}
+        {icon ? <Icon name={icon} color={t.muted} size={18} /> : null}
         <TextInput
           placeholderTextColor={t.muted}
           accessibilityLabel={label || input.placeholder}
@@ -295,17 +262,17 @@ export function Header({ title, right, onBack }) {
       <IconButton label="Back" onPress={onBack || (() => (router.canGoBack() ? router.back() : router.replace("/")))}>
         <Chevron color={t.text} />
       </IconButton>
-      <T v="h1" style={{ flex: 1, fontSize: 25 }} numberOfLines={1}>{title}</T>
+      <T v="h1" style={{ flex: 1, fontSize: 24 }} numberOfLines={1}>{title}</T>
       {right}
     </View>
   );
 }
 
-export function Pill({ children, color, bg, emoji, style }) {
+export function Pill({ children, color, bg, icon, style }) {
   const t = useTheme();
   return (
     <View style={[{ flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: bg || t.soft, alignSelf: "flex-start" }, style]}>
-      {emoji ? <Text style={{ fontSize: 12 }}>{emoji}</Text> : null}
+      {icon ? <Icon name={icon} color={color || t.ink} size={12} strokeWidth={2} /> : null}
       <T v="tiny" color={color || t.ink} style={{ fontWeight: "800" }}>{children}</T>
     </View>
   );
@@ -363,7 +330,7 @@ export function Segmented({ options, value, onChange, label }) {
               accessibilityState={{ checked: sel }}
               style={{ flex: 1, minHeight: 42, borderRadius: 14, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, backgroundColor: sel ? t.acc : "transparent" }}
             >
-              {o.emoji ? <Text style={{ fontSize: 14 }}>{o.emoji}</Text> : null}
+              {o.icon ? <Icon name={o.icon} color={sel ? t.onAcc : t.muted} size={15} /> : null}
               <T v="small" color={sel ? t.onAcc : t.text} style={{ fontWeight: "800" }}>{o.label}</T>
               {o.badge ? <View style={{ paddingHorizontal: 6, paddingVertical: 2, borderRadius: 999, backgroundColor: t.c3 }}><T v="tiny" color="#06231D">{o.badge}</T></View> : null}
             </Pressable>
@@ -447,12 +414,12 @@ export function Bar({ value = 0, color, height = 8, delay = 200 }) {
   );
 }
 
-export function Chip({ label, selected, onPress, accessibilityRole = "radio", emoji }) {
+export function Chip({ label, selected, onPress, accessibilityRole = "radio", icon }) {
   const t = useTheme();
   return (
     <Pressable onPress={onPress} accessibilityRole={accessibilityRole} accessibilityState={{ selected: Boolean(selected), checked: Boolean(selected) }}>
       <Glass radius={14} border={selected ? t.ink : undefined} style={{ minHeight: 44, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: selected ? t.soft : t.s1 }}>
-        {emoji ? <Text style={{ fontSize: 15 }}>{emoji}</Text> : null}
+        {icon ? <Icon name={icon} color={selected ? t.ink : t.muted} size={15} /> : null}
         <T v="small" color={selected ? t.ink : t.text} style={{ fontWeight: "800" }}>{label}</T>
       </Glass>
     </Pressable>
@@ -464,7 +431,10 @@ export function ErrorBox({ error, onRetry }) {
   if (!error) return null;
   return (
     <Card highlight={t.bad}>
-      <T color={t.bad} style={{ fontWeight: "700" }}>😕 {error.message}</T>
+      <View style={{ flexDirection: "row", gap: 10, alignItems: "flex-start" }}>
+        <Icon name="alert" color={t.bad} size={18} />
+        <T color={t.bad} style={{ fontWeight: "600", flex: 1 }}>{error.message}</T>
+      </View>
       {onRetry && <Button title="Try again" variant="secondary" onPress={onRetry} />}
     </Card>
   );

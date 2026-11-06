@@ -36,7 +36,7 @@ export function AiUsage() {
               <tbody>
                 {data.byKind.map((r) => (
                   <tr key={r.kind + r.model}>
-                    <td>{r.kind.replace("_", " ")}</td><td>{r.model}</td>
+                    <td>{({ goal_plan: "Goal plan", "coach.chat": "Coach chat", "coach.plan_day": "Plan my day", "coach.reflect": "Journal reflection", "coach.weekly_review": "Weekly review" })[r.kind] ?? r.kind.replace("_", " ")}</td><td>{r.model}</td>
                     <td className="num">{fmt.num(r.calls)}</td><td className="num">{fmt.compact(r.input_tokens + r.output_tokens)}</td>
                   </tr>
                 ))}

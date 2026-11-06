@@ -56,6 +56,6 @@ export const COLOR_CHOICES = [
 export const areaColor = (t, area) =>
   ({ fitness: t.c3, money: t.c2, career: t.c4, business: t.ink, learning: t.c4, goal: t.ink, custom: t.muted }[area] ?? t.ink);
 
-// Emoji per area, used in lists and tags.
-export const areaEmoji = (area) =>
-  ({ fitness: "💪", money: "💰", career: "💼", business: "🚀", learning: "📚", goal: "🎯", personal: "🌱", custom: "📝" }[area] ?? "🎯");
+// Icon per area, used in lists and tags.
+export const areaIcon = (area) =>
+  ({ fitness: "dumbbell", money: "wallet", career: "briefcase", business: "rocket", learning: "book", goal: "target", personal: "leaf", custom: "check" }[area] ?? "target");

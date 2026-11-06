@@ -14,6 +14,8 @@ export const SETTINGS = {
 
   // Plans & limits
   free_active_goals: { schema: z.number().int().min(0).max(100), default: () => config.FREE_ACTIVE_GOALS, group: "limits", label: "Free plan: active goals" },
+  free_ai_requests_per_day: { schema: z.number().int().min(0).max(1000), default: () => 10, group: "limits", label: "Free plan: AI assistant requests per day" },
+  premium_ai_requests_per_day: { schema: z.number().int().min(1).max(5000), default: () => 200, group: "limits", label: "Premium: AI assistant requests per day" },
   free_ai_plans_per_month: { schema: z.number().int().min(0).max(1000), default: () => config.FREE_AI_PLANS_PER_MONTH, group: "limits", label: "Free plan: AI plans per month" },
 
   // App behaviour
@@ -31,7 +33,7 @@ export const SETTINGS = {
       journal: z.boolean(), money: z.boolean(), fitness: z.boolean(), nutrition: z.boolean(),
       career: z.boolean(), future_me: z.boolean(), decisions: z.boolean(), assistant: z.boolean()
     }),
-    default: () => ({ journal: true, money: false, fitness: false, nutrition: false, career: false, future_me: false, decisions: false, assistant: false }),
+    default: () => ({ journal: true, money: false, fitness: false, nutrition: false, career: false, future_me: false, decisions: false, assistant: true }),
     group: "app",
     label: "Features visible in the app"
   },

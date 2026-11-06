@@ -7,6 +7,7 @@ import helmet from "helmet";
 import { config } from "./config.js";
 import { errorHandler, notFound } from "./lib/errors.js";
 import { adminRouter } from "./routes/admin.js";
+import { aiRouter } from "./routes/ai.js";
 import { authRouter } from "./routes/auth.js";
 import { goalsRouter } from "./routes/goals.js";
 import { journalRouter } from "./routes/journal.js";
@@ -63,6 +64,7 @@ export function createApp() {
   app.use("/api/profile", profileRouter);
   app.use("/api/goals", goalsRouter);
   app.use("/api/journal", journalRouter);
+  app.use("/api/ai", aiRouter);
   app.use("/api/billing", billingRouter);
   app.use("/api/notifications", notificationsRouter);
   app.use("/api", tasksRouter);
