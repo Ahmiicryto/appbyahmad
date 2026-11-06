@@ -1,14 +1,17 @@
 {
   "expo": {
     "name": "Elauxi",
-    "slug": "appbyahmad",
+    "slug": "elauxi",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.htec.appbyahmad"
+      "bundleIdentifier": "com.htec.elauxi",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -17,7 +20,7 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "package": "com.htec.appbyahmad"
+      "package": "com.htec.elauxi"
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -27,7 +30,7 @@
       "themeColor": "#040212",
       "description": "Your Everyday Superpower."
     },
-    "scheme": "appbyahmad",
+    "scheme": "elauxi",
     "plugins": [
       "expo-router",
       "expo-secure-store",

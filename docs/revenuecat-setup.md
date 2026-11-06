@@ -19,8 +19,8 @@ The store charges its own price, so keep the prices in the stores and on admin �
 
 ## 2. Set up RevenueCat
 
-1. app.revenuecat.com → create a project → add an **App Store** app (bundle ID `com.htec.appbyahmad`) and a
-   **Play Store** app (package `com.htec.appbyahmad`). Follow RevenueCat's steps to connect each store.
+1. app.revenuecat.com → create a project → add an **App Store** app (bundle ID `com.htec.elauxi`) and a
+   **Play Store** app (package `com.htec.elauxi`). Follow RevenueCat's steps to connect each store.
 2. **Products** → import both products from each store.
 3. **Entitlements** → create one called `premium` → attach all four products.
 4. **Offerings** → the "default" offering → add a Monthly package and an Annual package with the products.
