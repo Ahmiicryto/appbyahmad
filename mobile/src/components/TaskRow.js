@@ -1,7 +1,8 @@
 import { Pressable, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { useTheme } from "../lib/AppContext";
-import { areaColor, areaEmoji } from "../theme/themes";
+import { areaColor, areaIcon } from "../theme/themes";
+import { Icon } from "./icons";
 import { Glass, T } from "./ui";
 
 const SOURCE_LABEL = { goal: "Goal", fitness: "Fitness", money: "Money", career: "Career", custom: "Personal" };
@@ -11,7 +12,7 @@ export function TaskRow({ task, onToggle }) {
   const done = Boolean(task.done_at);
   const color = areaColor(t, task.source === "goal" ? task.goal_category : task.source);
   const area = task.source === "goal" ? task.goal_category || "goal" : task.source;
-  const label = `${areaEmoji(area)} ${task.goal_title ? `${SOURCE_LABEL[task.source]} · ${task.goal_title}` : SOURCE_LABEL[task.source]}`;
+  const label = task.goal_title ? `${SOURCE_LABEL[task.source]} · ${task.goal_title}` : SOURCE_LABEL[task.source];
   return (
     <Pressable
       onPress={() => onToggle(task)}
@@ -30,7 +31,10 @@ export function TaskRow({ task, onToggle }) {
       </View>
       <View style={{ flex: 1, gap: 2 }}>
         <T style={{ fontWeight: "700", textDecorationLine: done ? "line-through" : "none" }} color={done ? t.muted : t.text}>{task.title}</T>
-        <T v="small" color={color} style={{ fontWeight: "700" }} numberOfLines={1}>{label}</T>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+          <Icon name={areaIcon(area)} color={color} size={13} strokeWidth={2} />
+          <T v="small" color={color} style={{ fontWeight: "600", flexShrink: 1 }} numberOfLines={1}>{label}</T>
+        </View>
       </View>
       {task.due_time ? <T v="small" muted>{task.due_time}</T> : null}
       </Glass>

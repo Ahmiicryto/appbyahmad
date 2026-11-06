@@ -2,6 +2,7 @@ import Constants from "expo-constants";
 import { useState } from "react";
 import { Linking, Platform, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Icon } from "./icons";
 import { useTheme } from "../lib/AppContext";
 import { APP_VERSION, useAppConfig } from "../lib/appConfig";
 import { Button, T } from "./ui";
@@ -34,7 +35,7 @@ export function MaintenanceScreen({ updateRequired = false, storeUrl }) {
     <SafeAreaView style={{ flex: 1, backgroundColor: t.bg }}>
       <View style={{ flex: 1, justifyContent: "center", padding: 28, gap: 14 }}>
         <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: t.soft, alignItems: "center", justifyContent: "center" }}>
-          <T v="h2" color={t.ink}>{updateRequired ? "↑" : "…"}</T>
+          <Icon name={updateRequired ? "arrowUp" : "clock"} color={t.ink} size={26} />
         </View>
         <T v="h1" accessibilityRole="header">{title}</T>
         <T muted>{body}</T>

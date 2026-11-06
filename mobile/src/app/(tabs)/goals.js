@@ -3,7 +3,8 @@ import { Pressable, View } from "react-native";
 import { Bar, Button, Card, ErrorBox, Loading, Rise, Screen, T } from "../../components/ui";
 import { useTheme } from "../../lib/AppContext";
 import { useLoad } from "../../lib/useLoad";
-import { areaColor, areaEmoji } from "../../theme/themes";
+import { Icon } from "../../components/icons";
+import { areaColor, areaIcon } from "../../theme/themes";
 
 const STATUS = { active: "On track", paused: "Paused", completed: "Completed", cancelled: "Cancelled" };
 
@@ -21,15 +22,15 @@ export default function Goals() {
           <T v="h1">Goals</T>
           <T v="small" muted>{active} active · {goals.length - active} other</T>
         </View>
-        <Button title="New goal" emoji="➕" small onPress={() => router.push("/goal/new")} />
+        <Button title="New goal" icon="plus" small onPress={() => router.push("/goal/new")} />
       </Rise>
       <ErrorBox error={error} onRetry={reload} />
       {!goals.length && !error && (
         <Rise delay={100}>
           <Card>
-            <T v="h3">🎯 What do you want to achieve?</T>
+            <T v="h3">What do you want to achieve?</T>
             <T muted>Lose 15 kg, save $20,000, start a business, read 20 books… Tell us and we'll turn it into a plan.</T>
-            <Button title="Set my first goal" pulse onPress={() => router.push("/goal/new")} />
+            <Button title="Set my first goal" onPress={() => router.push("/goal/new")} />
           </Card>
         </Rise>
       )}
@@ -40,8 +41,9 @@ export default function Goals() {
             <Pressable onPress={() => router.push(`/goal/${g.id}`)} accessibilityRole="link" accessibilityLabel={`${g.title}, ${g.progress} percent`}>
               <Card style={{ opacity: g.status === "active" ? 1 : 0.7 }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                  <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: t.soft }}>
-                    <T v="tiny" color={color} style={{ textTransform: "capitalize" }}>{areaEmoji(g.category)} {g.category}</T>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: t.soft }}>
+                    <Icon name={areaIcon(g.category)} color={color} size={12} strokeWidth={2} />
+                    <T v="tiny" color={color} style={{ textTransform: "capitalize" }}>{g.category}</T>
                   </View>
                   <T v="small" color={g.status === "active" ? t.ink : t.muted} style={{ fontWeight: "800" }}>{STATUS[g.status]}</T>
                 </View>

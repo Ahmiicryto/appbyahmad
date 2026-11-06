@@ -1,7 +1,8 @@
 import { router } from "expo-router";
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, View } from "react-native";
-import { Button, Card, Checkbox, Emoji, Header, Rise, Screen, T } from "../../components/ui";
+import { Icon } from "../../components/icons";
+import { Button, Card, Checkbox, Header, Rise, Screen, T } from "../../components/ui";
 import { EmailField, PasswordField } from "../../components/AuthFields";
 import { useApp, useTheme } from "../../lib/AppContext";
 import { useAppConfig } from "../../lib/appConfig";
@@ -21,11 +22,11 @@ export function passwordScore(pw) {
   return pw.length < 8 ? Math.min(s, 1) : Math.min(4, s);
 }
 const LEVELS = [
-  ["🔐", "Use at least 8 characters"],
-  ["😬", "Weak — add numbers or symbols"],
-  ["🙂", "Okay — a bit longer is better"],
-  ["👍", "Good password"],
-  ["💪", "Strong password"]
+  ["info", "Use at least 8 characters"],
+  ["alert", "Weak. Add numbers or symbols"],
+  ["info", "Okay. A bit longer is better"],
+  ["check", "Good password"],
+  ["shield", "Strong password"]
 ];
 
 export default function SignUp() {
@@ -58,7 +59,7 @@ export default function SignUp() {
     return (
       <Screen>
         <Header title="" />
-        <Card><T v="h2">🚧 Sign-ups are paused</T><T muted>We're not taking new accounts right now. Please check back soon.</T></Card>
+        <Card><T v="h2">Sign-ups are paused</T><T muted>We're not taking new accounts right now. Please check back soon.</T></Card>
       </Screen>
     );
   }
@@ -68,10 +69,7 @@ export default function SignUp() {
       <Screen>
         <Header title="" />
         <Rise style={{ gap: 6 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <T v="h1">Create your account</T>
-            <Emoji e="✨" size={24} anim="pulse" />
-          </View>
+          <T v="h1">Create your account</T>
           <T muted>It takes less than a minute. Free to start, no card needed.</T>
         </Rise>
 
@@ -85,7 +83,7 @@ export default function SignUp() {
               ))}
             </View>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <Emoji e={LEVELS[score][0]} size={15} anim={score === 4 ? "bob" : undefined} />
+              <Icon name={LEVELS[score][0]} color={score >= 3 ? t.good : t.muted} size={15} strokeWidth={2} />
               <T v="small" color={score >= 3 ? t.good : t.muted} style={{ fontWeight: "700" }}>{LEVELS[score][1]}</T>
             </View>
           </View>
@@ -94,12 +92,15 @@ export default function SignUp() {
             <Legal inline />
           </Checkbox>
 
-          {error && !error.fields ? <T color={t.bad} style={{ fontWeight: "700" }}>😕 {error.message}</T> : null}
-          <Button title="Create account" emoji="🚀" onPress={submit} busy={busy} disabled={!ready} pulse={ready} />
+          {error && !error.fields ? <T color={t.bad} style={{ fontWeight: "600" }}>{error.message}</T> : null}
+          <Button title="Create account" onPress={submit} busy={busy} disabled={!ready} />
           <Pressable onPress={() => router.replace("/sign-in")} accessibilityRole="button" style={{ minHeight: 44, alignItems: "center", justifyContent: "center" }}>
             <T v="small" muted>Already have an account? <T v="small" color={t.ink} style={{ fontWeight: "800" }}>Sign in</T></T>
           </Pressable>
-          <T v="tiny" muted style={{ textAlign: "center", fontWeight: "600" }}>🔒 Encrypted. We never sell your data.</T>
+          <View style={{ flexDirection: "row", gap: 6, alignItems: "center", justifyContent: "center" }}>
+            <Icon name="lock" color={t.muted} size={13} />
+            <T v="tiny" muted style={{ fontWeight: "600" }}>Encrypted. We never sell your data.</T>
+          </View>
         </Rise>
       </Screen>
     </KeyboardAvoidingView>

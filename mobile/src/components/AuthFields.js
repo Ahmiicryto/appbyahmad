@@ -1,13 +1,15 @@
 import { useState } from "react";
-import { Pressable, Text } from "react-native";
+import { Pressable, View } from "react-native";
 import { useTheme } from "../lib/AppContext";
+import { Icon } from "./icons";
 import { Field, T } from "./ui";
 
 export function EmailField({ valid, ...props }) {
+  const t = useTheme();
   return (
     <Field
       label="Email"
-      emoji="✉️"
+      icon="mail"
       placeholder="you@example.com"
       autoCapitalize="none"
       autoComplete="email"
@@ -16,7 +18,7 @@ export function EmailField({ valid, ...props }) {
       textContentType="emailAddress"
       returnKeyType="next"
       valid={valid}
-      right={valid ? <Text accessibilityLabel="Email looks good" style={{ fontSize: 15 }}>✅</Text> : null}
+      right={valid ? <View accessible accessibilityLabel="Email looks good"><Icon name="check" color={t.good} size={18} strokeWidth={2.2} /></View> : null}
       {...props}
     />
   );
@@ -28,7 +30,7 @@ export function PasswordField({ isNew, ...props }) {
   return (
     <Field
       label="Password"
-      emoji="🔑"
+      icon="key"
       placeholder={isNew ? "At least 8 characters" : "Your password"}
       secureTextEntry={!show}
       autoCapitalize="none"

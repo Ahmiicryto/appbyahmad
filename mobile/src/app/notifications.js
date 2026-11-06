@@ -50,7 +50,7 @@ export default function Notifications() {
   return (
     <Screen>
       <Header
-        title="🔔 Notifications"
+        title="Notifications"
         right={unread > 0 ? (
           <Pressable onPress={readAll} accessibilityRole="button" style={{ minHeight: 44, justifyContent: "center", paddingHorizontal: 6 }}>
             <T v="small" color={t.ink} style={{ fontWeight: "800" }}>Read all</T>

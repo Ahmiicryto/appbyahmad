@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Pressable, View } from "react-native";
 import { useTheme } from "../lib/AppContext";
 import { useAppConfig } from "../lib/appConfig";
-import { Emoji, Glass, T } from "./ui";
+import { Icon } from "./icons";
+import { Glass, T } from "./ui";
 
 // Admin-set banner. Dismissing hides this text until the admin posts a different one.
 export function AnnouncementBanner({ style }) {
@@ -24,7 +25,7 @@ export function AnnouncementBanner({ style }) {
       border={look.border}
       style={[{ flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: look.bg, paddingVertical: 8, paddingLeft: 12, paddingRight: 4 }, style]}
     >
-      <Emoji e={{ info: "📣", success: "🎉", warning: "⚠️" }[a.level] ?? "📣"} size={17} anim="ring" />
+      <Icon name={{ info: "megaphone", success: "check", warning: "alert" }[a.level] ?? "megaphone"} color={look.text} size={18} />
       <T accessibilityRole="alert" v="small" color={look.text} style={{ flex: 1, fontWeight: "700" }}>{a.text}</T>
       <Pressable
         onPress={() => setDismissed(a.text)}

@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import { useState } from "react";
 import { Alert, KeyboardAvoidingView, Linking, Platform, Pressable, View } from "react-native";
-import { Button, Emoji, Glass, Header, Rise, Screen, T, Toggle } from "../../components/ui";
+import { Button, Glass, Header, Rise, Screen, T, Toggle } from "../../components/ui";
 import { EmailField, PasswordField } from "../../components/AuthFields";
 import { useApp, useTheme } from "../../lib/AppContext";
 import { useAppConfig } from "../../lib/appConfig";
@@ -44,10 +44,7 @@ export default function SignIn() {
       <Screen>
         <Header title="" />
         <Rise style={{ gap: 6 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <T v="h1">Welcome back</T>
-            <Emoji e="👋" size={26} anim="wave" />
-          </View>
+          <T v="h1">Welcome back</T>
           <T muted>Sign in to see your day.</T>
         </Rise>
 
@@ -68,7 +65,7 @@ export default function SignIn() {
             <Toggle value={remember} onChange={setRemember} label="Keep me signed in" />
           </Glass>
 
-          {error && !error.fields ? <T color={t.bad} style={{ fontWeight: "700" }}>😕 {error.message}</T> : null}
+          {error && !error.fields ? <T color={t.bad} style={{ fontWeight: "600" }}>{error.message}</T> : null}
           <Button title="Sign in" onPress={submit} busy={busy} disabled={!email.trim() || !password} />
           <Pressable onPress={() => router.replace("/sign-up")} accessibilityRole="button" style={{ minHeight: 44, alignItems: "center", justifyContent: "center" }}>
             <T v="small" muted>New here? <T v="small" color={t.ink} style={{ fontWeight: "800" }}>Create an account</T></T>

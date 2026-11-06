@@ -46,7 +46,7 @@ export default function NewGoal() {
       <Screen>
         <Header title="New goal" />
         <Rise style={{ gap: 6 }}>
-          <T v="h1">🎯 What is your goal?</T>
+          <T v="h1">What is your goal?</T>
         </Rise>
         <Rise delay={60} style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
           {EXAMPLES.map((e) => (
@@ -66,7 +66,7 @@ export default function NewGoal() {
             {error.code === "goal_limit" && <Button title="See Premium" variant="secondary" onPress={() => router.replace("/settings")} />}
           </View>
         ) : null}
-        <Button title="Create my plan" pulse disabled={f.title.trim().length < 3} onPress={create} />
+        <Button title="Create my plan" disabled={f.title.trim().length < 3} onPress={create} />
       </Screen>
     </KeyboardAvoidingView>
   );
