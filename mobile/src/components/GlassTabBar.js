@@ -7,7 +7,8 @@ import { useTheme } from "../lib/AppContext";
 import { T, WEB_GLASS } from "./ui";
 
 // Floating frosted pill tab bar. Used as <Tabs tabBar={(p) => <GlassTabBar {...p} />}>.
-export function GlassTabBar({ state, descriptors, navigation }) {
+// Supports both tab bar APIs: Expo Router 58 passes `emitter` + `navigateToTab`; older React Navigation passes `navigation`.
+export function GlassTabBar({ state, descriptors, navigation, emitter, navigateToTab }) {
   const t = useTheme();
   const insets = useSafeAreaInsets();
   return (
@@ -35,11 +36,12 @@ export function GlassTabBar({ state, descriptors, navigation }) {
             const focused = state.index === index;
             const color = focused ? t.ink : t.muted;
             const onPress = () => {
-              const event = navigation.emit({ type: "tabPress", target: route.key, canPreventDefault: true });
-              if (!focused && !event.defaultPrevented) {
-                if (Platform.OS !== "web") Haptics.selectionAsync().catch(() => {});
-                navigation.navigate(route.name, route.params);
-              }
+              const events = emitter ?? navigation;
+              const event = events?.emit?.({ type: "tabPress", target: route.key, canPreventDefault: true });
+              if (focused || event?.defaultPrevented) return;
+              if (Platform.OS !== "web") Haptics.selectionAsync().catch(() => {});
+              if (navigateToTab) navigateToTab(route.key);
+              else navigation?.navigate(route.name, route.params);
             };
             return (
               <Tab key={route.key} focused={focused} onPress={onPress} label={options.title ?? route.name} color={color}>
