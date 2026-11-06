@@ -25,6 +25,11 @@ import { notificationsRouter } from "./routes/notifications.js";
 import { maintenanceGate } from "./middleware/maintenance.js";
 
 const adminDist = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "admin", "dist");
+const webDist = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "web");
+// HTML must never be cached, so a deploy is picked up immediately; hashed JS/CSS files can be.
+const noCacheHtml = (res, file) => {
+  if (file.endsWith(".html")) res.setHeader("Cache-Control", "no-cache");
+};
 
 export function createApp() {
   const app = express();
@@ -82,7 +87,17 @@ export function createApp() {
     app.use("/admin", express.static(adminDist, { index: false, maxAge: "1h" }));
     app.get(/^\/admin(\/.*)?$/, (req, res) => res.sendFile(path.join(adminDist, "index.html")));
   }
-  app.get("/", (req, res) => res.redirect("/admin"));
+  // Elauxi web app (Expo web export, built by `npm run build:web`) at the site root.
+  if (fs.existsSync(webDist)) {
+    app.use(express.static(webDist, { index: false, maxAge: "1h", setHeaders: noCacheHtml }));
+    // Single-page app: any other page path returns index.html and the app's router takes over.
+    app.get(/^\/(?!api\/|admin(\/|$)).*/, (req, res) => {
+      res.set("Cache-Control", "no-cache");
+      res.sendFile(path.join(webDist, "index.html"));
+    });
+  } else {
+    app.get("/", (req, res) => res.redirect("/admin"));
+  }
 
   app.use(errorHandler);
   return app;

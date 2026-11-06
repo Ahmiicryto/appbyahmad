@@ -1,13 +1,14 @@
 {
   "name": "appbyahmad",
   "private": true,
-  "description": "Lets hosting platforms (Railway, Render, Koyeb...) build and start the server from the repository root with no extra settings.",
+  "description": "Lets hosting platforms (Railway, Render, Koyeb...) build and start the server from the repository root with no extra settings. The build also exports the Elauxi web app, served at the site root.",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "build": "npm --prefix server ci --include=dev && npm --prefix server run build",
+    "build": "npm --prefix server ci --include=dev && npm --prefix server run build && npm run build:web",
     "start": "npm --prefix server start",
-    "test": "npm --prefix server test"
+    "test": "npm --prefix server test",
+    "build:web": "npm --prefix mobile ci && cd mobile && EXPO_PUBLIC_SAME_ORIGIN=1 npx expo export --platform web --output-dir ../server/web"
   }
 }

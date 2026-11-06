@@ -1,7 +1,10 @@
 import Constants from "expo-constants";
 
 // Set EXPO_PUBLIC_API_URL (e.g. https://appbyahmad-api.onrender.com) or app.json > extra.apiUrl.
-export const API_URL = (process.env.EXPO_PUBLIC_API_URL || Constants.expoConfig?.extra?.apiUrl || "http://localhost:3000").replace(/\/$/, "");
+// The web build served by the API server itself (EXPO_PUBLIC_SAME_ORIGIN=1) calls the API on its own address,
+// so it keeps working on any domain (Railway URL or your own domain).
+const sameOrigin = process.env.EXPO_PUBLIC_SAME_ORIGIN === "1" && typeof window !== "undefined" && window.location?.origin;
+export const API_URL = (sameOrigin || process.env.EXPO_PUBLIC_API_URL || Constants.expoConfig?.extra?.apiUrl || "http://localhost:3000").replace(/\/$/, "");
 
 export class ApiError extends Error {
   constructor(status, body) {
