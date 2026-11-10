@@ -6,12 +6,29 @@ import { decrypt, encrypt } from "../lib/crypto.js";
 import { notFound } from "../lib/errors.js";
 import { track } from "../services/activity.js";
 import { AiUnavailable, COACH_STYLE, addDays, askStructured, askText, requireAi, usageToday, userContext } from "../services/ai.js";
+import { builtinDayPlan, builtinReply, builtinReview } from "../services/builtinCoach.js";
 import { EXERCISES, EXERCISE_IDS, FOCUSES, LEVELS, byId, templateWorkout } from "../services/exercises.js";
 
 export const aiRouter = Router();
 aiRouter.use(requireAuth);
 
 const HISTORY = 20; // messages sent back to the model per turn
+
+// "ai" when an AI provider can answer; "builtin" when none is set up (the built-in coach answers instead).
+// The daily limit still applies to AI answers (402/429 pass through).
+async function coachMode(user) {
+  try {
+    await requireAi(user);
+    return "ai";
+  } catch (err) {
+    if (err instanceof AiUnavailable) return "builtin";
+    throw err;
+  }
+}
+// Provider outages fall back to the built-in coach instead of showing an error.
+const isOutage = (err) => ["ai_failed", "ai_busy", "ai_unavailable"].includes(err?.code);
+const adminNotice = (user, mode) =>
+  mode === "builtin" && user.role === "admin" ? "Built-in coach answered. Add an AI provider key in Admin → Settings → AI provider for full AI answers." : null;
 
 aiRouter.get("/usage", async (req, res) => {
   res.json(await usageToday(req.user));
@@ -31,7 +48,7 @@ const ChatBody = z.object({ text: z.string().trim().min(1, "Type a message.").ma
 
 aiRouter.post("/chat", async (req, res) => {
   const { text } = ChatBody.parse(req.body ?? {});
-  await requireAi(req.user);
+  let mode = await coachMode(req.user);
   const { rows } = await query("SELECT role, content_enc FROM ai_messages WHERE user_id = $1 ORDER BY id DESC LIMIT $2", [req.user.id, HISTORY]);
   const history = rows.reverse().map((r) => ({ role: r.role, content: decrypt(r.content_enc) }));
   // The API needs the conversation to start with a user turn.
@@ -43,14 +60,23 @@ When you suggest tasks, make them concrete and doable today.
 
 User data (for grounding, as of ${context.today}):
 ${JSON.stringify(context)}`;
-  const reply = await askText({ userId: req.user.id, kind: "coach.chat", system, messages: [...history, { role: "user", content: text }] });
+  let reply;
+  if (mode === "ai") {
+    try {
+      reply = await askText({ userId: req.user.id, kind: "coach.chat", system, messages: [...history, { role: "user", content: text }] });
+    } catch (err) {
+      if (!isOutage(err)) throw err;
+      mode = "builtin";
+    }
+  }
+  if (mode === "builtin") reply = builtinReply(context, text);
   await query("INSERT INTO ai_messages (user_id, role, content_enc) VALUES ($1, 'user', $2)", [req.user.id, encrypt(text)]);
   const saved = await one(
     "INSERT INTO ai_messages (user_id, role, content_enc) VALUES ($1, 'assistant', $2) RETURNING id, created_at",
     [req.user.id, encrypt(reply)]
   );
   track(req.user.id, "ai.chat");
-  res.json({ message: { id: String(saved.id), role: "assistant", content: reply, created_at: saved.created_at }, usage: await usageToday(req.user) });
+  res.json({ message: { id: String(saved.id), role: "assistant", content: reply, created_at: saved.created_at }, source: mode, notice: adminNotice(req.user, mode), usage: await usageToday(req.user) });
 });
 
 aiRouter.delete("/chat", async (req, res) => {
@@ -75,9 +101,9 @@ const DayPlan = z.object({
 });
 
 aiRouter.post("/plan-day", async (req, res) => {
-  await requireAi(req.user);
+  const mode = await coachMode(req.user);
   const context = await userContext(req.user.id);
-  const plan = await askStructured({
+  const plan = mode === "builtin" ? builtinDayPlan(context) : await askStructured({
     userId: req.user.id,
     kind: "coach.plan_day",
     schema: DayPlan,
@@ -97,8 +123,8 @@ Use the exact goal id from the data for goal tasks (goal_id), otherwise null. "w
     time_of_day: t.time_of_day,
     why: t.why.slice(0, 200)
   }));
-  track(req.user.id, "ai.plan_day", { suggestions: tasks.length });
-  res.json({ summary: plan.summary, tasks, usage: await usageToday(req.user) });
+  track(req.user.id, "ai.plan_day", { suggestions: tasks.length, mode });
+  res.json({ summary: plan.summary, tasks, source: mode, notice: adminNotice(req.user, mode), usage: await usageToday(req.user) });
 });
 
 // ---------------------------------------------------------------- journal reflection
@@ -153,10 +179,10 @@ aiRouter.get("/weekly-review", async (req, res) => {
 });
 
 aiRouter.post("/weekly-review", async (req, res) => {
-  await requireAi(req.user);
+  const mode = await coachMode(req.user);
   const context = await userContext(req.user.id);
   const week = weekStart(context.today);
-  const r = await askStructured({
+  const r = mode === "builtin" ? builtinReview(context) : await askStructured({
     userId: req.user.id,
     kind: "coach.weekly_review",
     schema: Review,

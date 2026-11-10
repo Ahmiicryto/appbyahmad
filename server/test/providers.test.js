@@ -83,12 +83,12 @@ describe("OpenAI-compatible providers", () => {
     assert.equal(f.calls[0].url, "https://llm.example.com/v1/chat/completions");
   });
 
-  test("a rejected key shows users a calm message, not the provider error", async () => {
+  test("a rejected key falls back to the built-in coach and never leaks the provider error", async () => {
     await useOpenAI();
     setProviderFetchForTests(fakeFetch([{ status: 401, message: "Incorrect API key provided: sk-..." }]));
     const u = await signup();
-    const r = await api().post("/api/ai/chat").set(u.auth).send({ text: "hi" }).expect(503);
-    assert.equal(r.body.error.code, "ai_unavailable");
+    const r = await api().post("/api/ai/chat").set(u.auth).send({ text: "hi" }).expect(200);
+    assert.equal(r.body.source, "builtin");
     assert.ok(!JSON.stringify(r.body).includes("sk-"));
   });
 

@@ -31,10 +31,18 @@ function fakeClient({ text = "Focus on your landing page first.", parsed = null,
 afterEach(() => setAiClientForTests(null));
 
 describe("AI assistant", () => {
-  test("without an API key the coach explains it's off", async () => {
+  test("without an AI key the built-in coach answers from the user's data", async () => {
     const u = await signup();
-    const r = await api().post("/api/ai/chat").set(u.auth).send({ text: "hi" }).expect(503);
-    assert.equal(r.body.error.code, "ai_unavailable");
+    await api().post("/api/tasks").set(u.auth).send({ title: "Call the bank" }).expect(201);
+    let r = await api().post("/api/ai/chat").set(u.auth).send({ text: "What should I focus on today?" }).expect(200);
+    assert.equal(r.body.source, "builtin");
+    assert.match(r.body.message.content, /Call the bank/);
+    assert.equal(r.body.usage.used, 0, "built-in answers don't use AI requests");
+    r = await api().post("/api/ai/plan-day").set(u.auth).expect(200);
+    assert.equal(r.body.source, "builtin");
+    assert.ok(r.body.tasks.length >= 2);
+    r = await api().post("/api/ai/weekly-review").set(u.auth).expect(200);
+    assert.match(r.body.review.headline, /tasks|quiet/);
   });
 
   test("chat replies, is grounded in the user's data, and keeps encrypted history", async () => {

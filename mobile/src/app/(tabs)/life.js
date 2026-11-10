@@ -11,13 +11,14 @@ const LIVE = [
   { key: "habits", icon: "check", tone: "violet", title: "Habits", sub: "Daily streaks", href: "/habits" },
   { key: "money", icon: "wallet", tone: "amber", title: "Money", sub: "Spending & budget", href: "/money" },
   { key: "journal", icon: "book", tone: "blue", title: "Journal", sub: "Private reflections", href: "/journal" },
-  { key: "assistant", icon: "sparkles", tone: "indigo", title: "Coach", sub: "Ask your AI coach", href: "/assistant" }
+  { key: "focus", icon: "timer", tone: "indigo", title: "Focus", sub: "Deep-work timer", href: "/focus" },
+  { key: "future_me", icon: "mail", tone: "cyan", title: "Future Me", sub: "Letters to future you", href: "/future" },
+  { key: "decisions", icon: "scale", tone: "orange", title: "Decisions", sub: "Weigh your options", href: "/decisions" },
+  { key: "assistant", icon: "sparkles", tone: "pink", title: "Coach", sub: "Ask your AI coach", href: "/assistant" }
 ];
 const SOON = [
   { key: "nutrition", icon: "leaf", tone: "lime", title: "Nutrition" },
   { key: "career", icon: "briefcase", tone: "pink", title: "Career" },
-  { key: "future_me", icon: "sparkles", tone: "cyan", title: "Future Me" },
-  { key: "decisions", icon: "scale", tone: "slate", title: "Decisions" }
 ];
 
 export default function Life() {
@@ -53,7 +54,7 @@ export default function Life() {
 
       <Rise delay={260}>
         <SectionTitle title="Coming soon" />
-        <Card style={{ marginTop: 8, flexDirection: "row", justifyContent: "space-between" }}>
+        <Card style={{ marginTop: 8, flexDirection: "row", justifyContent: "space-around" }}>
           {SOON.map((a) => (
             <View key={a.key} style={{ alignItems: "center", gap: 6, flex: 1, opacity: 0.7 }}>
               <Icon3D name={a.icon} tone={a.tone} size={36} />

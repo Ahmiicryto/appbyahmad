@@ -26,6 +26,7 @@ export default function Assistant() {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
+  const [notice, setNotice] = useState(null);
   const scroll = useRef(null);
 
   const load = useCallback(async () => {
@@ -51,6 +52,7 @@ export default function Assistant() {
       const r = await api("/ai/chat", { method: "POST", body: { text: msg } });
       setMessages((m) => [...m, r.message]);
       setUsage(r.usage);
+      setNotice(r.notice || null);
     } catch (err) {
       setError(err);
       setMessages((m) => m.slice(0, -1));
@@ -133,6 +135,7 @@ export default function Assistant() {
               </View>
             )}
             {error ? <Card highlight={t.line}><AiError error={error} /></Card> : null}
+            {notice ? <T v="tiny" muted style={{ textAlign: "center", fontWeight: "500" }}>{notice}</T> : null}
           </ScrollView>
 
           <View style={{ paddingHorizontal: 14, paddingBottom: TAB_BAR_SPACE - 18, paddingTop: 6 }}>

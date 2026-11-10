@@ -9,6 +9,7 @@ import { errorHandler, notFound } from "./lib/errors.js";
 import { adminRouter } from "./routes/admin.js";
 import { aiRouter } from "./routes/ai.js";
 import { fitnessRouter } from "./routes/fitness.js";
+import { futureRouter } from "./routes/future.js";
 import { habitsRouter } from "./routes/habits.js";
 import { moneyRouter } from "./routes/money.js";
 import { authRouter } from "./routes/auth.js";
@@ -74,6 +75,7 @@ export function createApp() {
   app.use("/api/journal", journalRouter);
   app.use("/api/ai", aiRouter);
   app.use("/api/fitness", fitnessRouter);
+  app.use("/api/future", futureRouter);
   app.use("/api/habits", habitsRouter);
   app.use("/api/money", moneyRouter);
   app.use("/api/billing", billingRouter);

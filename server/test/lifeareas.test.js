@@ -102,3 +102,22 @@ describe("money", () => {
     assert.equal(r.body.transactions.length, 2);
   });
 });
+
+describe("future me", () => {
+  test("letters stay sealed until their date", async () => {
+    const u = await signup();
+    const other = await signup();
+    const later = new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10);
+    let r = await api().post("/api/future").set(u.auth).send({ title: "Dear me", body: "Did you launch the studio?", unlock_on: later }).expect(201);
+    const letter = r.body.letters[0];
+    assert.equal(letter.unlocked, false);
+    assert.equal(letter.body, undefined, "sealed text never leaves the server");
+    await api().post(`/api/future/${letter.id}/open`).set(u.auth).expect(403);
+    await api().post("/api/future").set(u.auth).send({ title: "x", body: "y", unlock_on: "2000-01-01" }).expect(400);
+    await pool.query("UPDATE future_letters SET unlock_on = current_date - 1 WHERE id = $1", [letter.id]);
+    r = await api().post(`/api/future/${letter.id}/open`).set(u.auth).expect(200);
+    assert.equal(r.body.letter.body, "Did you launch the studio?");
+    await api().post(`/api/future/${letter.id}/open`).set(other.auth).expect(404);
+    await api().delete(`/api/future/${letter.id}`).set(u.auth).expect(204);
+  });
+});

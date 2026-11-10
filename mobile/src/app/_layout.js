@@ -67,6 +67,9 @@ function Navigation() {
         <Stack.Screen name="fitness/workout" options={{ gestureEnabled: false, animation: "slide_from_bottom" }} />
         <Stack.Screen name="habits" />
         <Stack.Screen name="money" />
+        <Stack.Screen name="focus" />
+        <Stack.Screen name="future" />
+        <Stack.Screen name="decisions" />
       </Stack>
       {blocked && (
         <View style={StyleSheet.absoluteFill}>

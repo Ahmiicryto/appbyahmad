@@ -6,13 +6,14 @@ import { useApi } from "../useApi.js";
 const MODELS = ["claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5"];
 const FEATURES = [
   ["journal", "Journal"],
+  ["habits", "Habits"],
   ["money", "Money"],
-  ["fitness", "Fitness"],
+  ["fitness", "Workout"],
   ["nutrition", "Nutrition"],
   ["career", "Career"],
   ["future_me", "Future Me"],
   ["decisions", "Decisions"],
-  ["assistant", "Assistant chat"]
+  ["assistant", "AI coach"]
 ];
 const LEVELS = { info: "Info", success: "Good news", warning: "Warning" };
 const LEVEL_STYLE = {

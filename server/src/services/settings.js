@@ -53,7 +53,7 @@ export const SETTINGS = {
       career: z.boolean(), future_me: z.boolean(), decisions: z.boolean(), assistant: z.boolean(),
       habits: z.boolean().default(true)
     }),
-    default: () => ({ journal: true, habits: true, money: true, fitness: true, nutrition: false, career: false, future_me: false, decisions: false, assistant: true }),
+    default: () => ({ journal: true, habits: true, money: true, fitness: true, nutrition: false, career: false, future_me: true, decisions: true, assistant: true }),
     group: "app",
     label: "Features visible in the app"
   },
