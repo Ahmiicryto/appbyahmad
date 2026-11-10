@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { go } from "../lib/nav";
 import { ActivityIndicator, View } from "react-native";
 import { useTheme } from "../lib/AppContext";
 import { isAiOff, isUpgradeError } from "../lib/ai";
@@ -39,7 +39,7 @@ export function AiError({ error }) {
   return (
     <View style={{ gap: 10 }}>
       <T v="small" color={isUpgradeError(error) || isAiOff(error) ? t.muted : t.bad} style={{ lineHeight: 19 }}>{error.message}</T>
-      {isUpgradeError(error) && <Button small title="See Premium" icon="crown" onPress={() => router.push("/premium")} />}
+      {isUpgradeError(error) && <Button small title="See Premium" icon="crown" onPress={() => go("/premium")} />}
     </View>
   );
 }

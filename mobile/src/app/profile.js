@@ -1,8 +1,8 @@
-import { router } from "expo-router";
+import { go } from "../lib/nav";
 import { useState } from "react";
-import { Linking, Modal, Platform, Pressable, Share, StyleSheet, View } from "react-native";
+import { Linking, Modal, Platform, Share, StyleSheet, View } from "react-native";
 import { Icon } from "../components/icons";
-import { Avatar, Button, Card, Chevron, Field, Glass, Header, IconButton, IconTile, Pill, Rise, Screen, T } from "../components/ui";
+import { Avatar, Button, Card, Chevron, Field, Glass, Header, IconButton, IconTile, Pill, Rise, Screen, T, Tap } from "../components/ui";
 import Constants from "expo-constants";
 import { api } from "../lib/api";
 import { useApp, useTheme } from "../lib/AppContext";
@@ -92,10 +92,10 @@ export default function Profile() {
   ];
   const rows = [
     { title: "Settings", items: [
-      ["bell", "Notifications", "", () => router.push("/notifications")],
-      ["contrast", "Appearance & color", { auto: "Auto", light: "Light", dark: "Dark" }[appearance], () => router.push("/settings")],
-      ["shield", "Privacy & security", "", () => router.push("/settings")],
-      ["crown", "Plans & billing", user?.isPremium ? "Premium" : "Free", () => router.push("/premium")]
+      ["bell", "Notifications", "", () => go("/notifications")],
+      ["contrast", "Appearance & color", { auto: "Auto", light: "Light", dark: "Dark" }[appearance], () => go("/settings")],
+      ["shield", "Privacy & security", "", () => go("/settings")],
+      ["crown", "Plans & billing", user?.isPremium ? "Premium" : "Free", () => go("/premium")]
     ] },
     { title: "Support", items: [
       ["help", "Help & support", "", support ? () => Linking.openURL(`mailto:${support}`) : null],
@@ -109,14 +109,14 @@ export default function Profile() {
     <Screen>
       <Header
         title="Profile"
-        right={<IconButton label="Settings" onPress={() => router.push("/settings")}><Icon name="gear" color={t.text} size={19} /></IconButton>}
+        right={<IconButton label="Settings" onPress={() => go("/settings")}><Icon name="gear" color={t.text} size={19} /></IconButton>}
       />
 
       <Rise>
         <Card strong style={{ alignItems: "center", gap: 6, paddingTop: 22 }}>
           <View style={{ width: 112, height: 112, alignItems: "center", justifyContent: "center" }}>
             <Avatar profile={profile} size={104} />
-            <Pressable
+            <Tap
               onPress={() => setSheet(true)}
               accessibilityRole="button"
               accessibilityLabel="Change profile photo"
@@ -124,7 +124,7 @@ export default function Profile() {
               style={{ position: "absolute", right: 0, bottom: 2, width: 38, height: 38, borderRadius: 19, backgroundColor: t.acc, borderWidth: 2, borderColor: t.bg, alignItems: "center", justifyContent: "center" }}
             >
               <Icon name="camera" color={t.onAcc} size={17} />
-            </Pressable>
+            </Tap>
           </View>
           <T v="h2" style={{ marginTop: 6, textAlign: "center" }}>{profile?.name || "Add your name"}</T>
           <T v="small" muted>{user?.email}</T>
@@ -141,7 +141,7 @@ export default function Profile() {
       </Rise>
 
       <Rise delay={60}>
-        <Pressable onPress={() => router.push("/premium")} accessibilityRole="button" accessibilityLabel={user?.isPremium ? "Manage your plan" : "See Premium plans"}>
+        <Tap onPress={() => go("/premium")} accessibilityRole="button" accessibilityLabel={user?.isPremium ? "Manage your plan" : "See Premium plans"}>
           {({ pressed }) => (
             <Glass radius={24} border={t.pbd} style={{ padding: 16, gap: 12, backgroundColor: t.soft, opacity: pressed ? 0.9 : 1 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
@@ -164,7 +164,7 @@ export default function Profile() {
               </View>
             </Glass>
           )}
-        </Pressable>
+        </Tap>
       </Rise>
 
       <Rise delay={120}>
@@ -210,12 +210,12 @@ export default function Profile() {
           <Card style={{ gap: 0, paddingVertical: 10 }}>
             <T v="tiny" muted style={{ letterSpacing: 1.2, textTransform: "uppercase", fontWeight: "800", marginBottom: 2 }}>{g.title}</T>
             {g.items.map(([e, label, value, onPress], i) => (
-              <Pressable key={label} onPress={onPress} accessibilityRole="button" style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, minHeight: 54, opacity: pressed ? 0.7 : 1, borderBottomWidth: i === g.items.length - 1 ? 0 : StyleSheet.hairlineWidth, borderColor: t.line })}>
+              <Tap key={label} onPress={onPress} accessibilityRole="button" style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, minHeight: 54, opacity: pressed ? 0.7 : 1, borderBottomWidth: i === g.items.length - 1 ? 0 : StyleSheet.hairlineWidth, borderColor: t.line })}>
                 <IconTile name={e} />
                 <T style={{ flex: 1, fontWeight: "600" }}>{label}</T>
                 {value ? <T v="small" muted style={{ fontWeight: "700" }}>{value}</T> : null}
                 <Chevron color={t.muted} dir="right" size={16} />
-              </Pressable>
+              </Tap>
             ))}
           </Card>
         </Rise>
@@ -225,7 +225,7 @@ export default function Profile() {
       <T v="tiny" muted style={{ textAlign: "center" }}>Elauxi · Version {Constants.expoConfig?.version ?? "1.0.0"}</T>
 
       <Modal visible={sheet} transparent animationType="slide" onRequestClose={() => setSheet(false)}>
-        <Pressable style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.45)" }} onPress={() => setSheet(false)} accessibilityLabel="Close" />
+        <Tap style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.45)" }} onPress={() => setSheet(false)} accessibilityLabel="Close" />
         <View style={{ position: "absolute", left: 10, right: 10, bottom: Platform.OS === "ios" ? 28 : 12, borderRadius: 30, padding: 16, gap: 12, backgroundColor: t.solid, borderWidth: 1, borderColor: t.line }}>
           <View style={{ width: 40, height: 5, borderRadius: 3, backgroundColor: t.track, alignSelf: "center" }} />
           <T v="h3" style={{ textAlign: "center" }}>Profile photo</T>

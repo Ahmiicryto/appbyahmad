@@ -1,10 +1,11 @@
-import { router, useFocusEffect } from "expo-router";
+import { useFocusEffect } from "expo-router";
+import { go } from "../lib/nav";
 import { useCallback, useState } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { api } from "../lib/api";
 import { useTheme } from "../lib/AppContext";
-import { Glass, T } from "./ui";
+import { Glass, T, Tap } from "./ui";
 
 export const BellIcon = ({ color, size = 22 }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -32,8 +33,8 @@ export function NotificationBell() {
 
   const label = count ? `Notifications, ${count} unread` : "Notifications";
   return (
-    <Pressable
-      onPress={() => router.push("/notifications")}
+    <Tap
+      onPress={() => go("/notifications")}
       accessibilityRole="button"
       accessibilityLabel={label}
       hitSlop={4}
@@ -53,7 +54,7 @@ export function NotificationBell() {
           <T v="tiny" color={t.onAcc} style={{ fontSize: 10, lineHeight: 12 }}>{count > 99 ? "99+" : count}</T>
         </View>
       )}
-    </Pressable>
+    </Tap>
   );
 }
 

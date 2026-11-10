@@ -1,9 +1,10 @@
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
+import { back } from "../../lib/nav";
 import { useState } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { TaskRow } from "../../components/TaskRow";
-import { Bar, Button, Card, ErrorBox, Header, Loading, Overline, Rise, Screen, T } from "../../components/ui";
+import { Bar, Button, Card, ErrorBox, Header, Loading, Overline, Rise, Screen, T, Tap } from "../../components/ui";
 import { api } from "../../lib/api";
 import { useTheme } from "../../lib/AppContext";
 import { confirm } from "../../lib/confirm";
@@ -42,7 +43,7 @@ export default function GoalDetail() {
   async function remove() {
     if (!(await confirm("Delete this goal?", "Its milestones and tasks will be deleted too. This can't be undone.", "Delete goal"))) return;
     await api(`/goals/${goal.id}`, { method: "DELETE" });
-    router.back();
+    back();
   }
 
   return (
@@ -72,7 +73,7 @@ export default function GoalDetail() {
           const now = m.status === "in_progress";
           return (
             <Rise key={m.id} delay={150 + i * 60}>
-              <Pressable onPress={() => cycle(m)} accessibilityRole="button" accessibilityLabel={`${m.title}, ${LABEL[m.status]}`} style={{ flexDirection: "row", gap: 14, minHeight: 56 }}>
+              <Tap onPress={() => cycle(m)} accessibilityRole="button" accessibilityLabel={`${m.title}, ${LABEL[m.status]}`} style={{ flexDirection: "row", gap: 14, minHeight: 56 }}>
                 <View style={{ alignItems: "center", width: 24 }}>
                   <View style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: done || now ? t.acc : t.line, backgroundColor: done ? t.acc : now ? t.soft : "transparent", alignItems: "center", justifyContent: "center" }}>
                     {done && <Svg width={12} height={12} viewBox="0 0 24 24"><Path d="M5 12l5 5L20 7" stroke={t.onAcc} strokeWidth={4} fill="none" strokeLinecap="round" /></Svg>}
@@ -86,7 +87,7 @@ export default function GoalDetail() {
                   </View>
                   {m.due_date ? <T v="small" muted>By {new Date(`${m.due_date}T12:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</T> : null}
                 </View>
-              </Pressable>
+              </Tap>
             </Rise>
           );
         })}

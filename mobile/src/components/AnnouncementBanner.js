@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { useTheme } from "../lib/AppContext";
 import { useAppConfig } from "../lib/appConfig";
 import { Icon } from "./icons";
-import { Glass, T } from "./ui";
+import { Glass, T, Tap } from "./ui";
 
 // Admin-set banner. Dismissing hides this text until the admin posts a different one.
 export function AnnouncementBanner({ style }) {
@@ -27,7 +27,7 @@ export function AnnouncementBanner({ style }) {
     >
       <Icon name={{ info: "megaphone", success: "check", warning: "alert" }[a.level] ?? "megaphone"} color={look.text} size={18} />
       <T accessibilityRole="alert" v="small" color={look.text} style={{ flex: 1, fontWeight: "700" }}>{a.text}</T>
-      <Pressable
+      <Tap
         onPress={() => setDismissed(a.text)}
         accessibilityRole="button"
         accessibilityLabel="Dismiss announcement"
@@ -35,7 +35,7 @@ export function AnnouncementBanner({ style }) {
         style={{ width: 36, height: 36, alignItems: "center", justifyContent: "center" }}
       >
         <T v="h2" color={look.text}>×</T>
-      </Pressable>
+      </Tap>
     </Glass>
   );
 }

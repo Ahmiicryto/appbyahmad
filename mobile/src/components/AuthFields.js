@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { useTheme } from "../lib/AppContext";
 import { Icon } from "./icons";
-import { Field, T } from "./ui";
+import { Field, T, Tap } from "./ui";
 
 export function EmailField({ valid, ...props }) {
   const t = useTheme();
@@ -39,9 +39,9 @@ export function PasswordField({ isNew, ...props }) {
       textContentType={isNew ? "newPassword" : "password"}
       returnKeyType="go"
       right={
-        <Pressable onPress={() => setShow((s) => !s)} accessibilityRole="button" accessibilityLabel={show ? "Hide password" : "Show password"} hitSlop={10}>
+        <Tap onPress={() => setShow((s) => !s)} accessibilityRole="button" accessibilityLabel={show ? "Hide password" : "Show password"} hitSlop={10}>
           <T v="small" color={t.ink} style={{ fontWeight: "800" }}>{show ? "Hide" : "Show"}</T>
-        </Pressable>
+        </Tap>
       }
       {...props}
     />

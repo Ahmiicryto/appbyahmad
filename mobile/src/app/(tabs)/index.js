@@ -1,12 +1,12 @@
-import { router } from "expo-router";
+import { go } from "../../lib/nav";
 import { useEffect, useRef, useState } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { AiCard, AiError, AiThinking } from "../../components/AiCard";
 import { AnnouncementBanner } from "../../components/AnnouncementBanner";
 import { Icon } from "../../components/icons";
 import { NotificationBell } from "../../components/NotificationBell";
 import { TaskRow } from "../../components/TaskRow";
-import { Avatar, Bar, Button, Card, Chevron, ErrorBox, Field, Loading, Ring, Rise, Screen, SectionTitle, T } from "../../components/ui";
+import { Avatar, Bar, Button, Card, Chevron, ErrorBox, Field, Glass, Icon3D, Loading, Ring, Rise, Screen, SectionTitle, T, Tap } from "../../components/ui";
 import { planDay } from "../../lib/ai";
 import { api } from "../../lib/api";
 import { useApp, useTheme } from "../../lib/AppContext";
@@ -55,9 +55,9 @@ export default function Today() {
   return (
     <Screen tabBar>
       <Rise style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-        <Pressable onPress={() => router.push("/profile")} accessibilityRole="button" accessibilityLabel="Open your profile" hitSlop={4}>
+        <Tap onPress={() => go("/profile")} accessibilityRole="button" accessibilityLabel="Open your profile" hitSlop={4}>
           <Avatar profile={profile} size={46} />
-        </Pressable>
+        </Tap>
         <View style={{ flex: 1 }}>
           <T v="small" muted numberOfLines={1}>{date}</T>
           <T v="h2" numberOfLines={1} style={{ fontSize: 20 }}>{greeting()}{profile?.name ? `, ${profile.name.split(" ")[0]}` : ""}</T>
@@ -82,6 +82,22 @@ export default function Today() {
         </Card>
       </Rise>
 
+      <Rise delay={90} style={{ flexDirection: "row", gap: 8 }}>
+        {[
+          ["fitness", "/fitness", "dumbbell", "orange", "Workout"],
+          ["habits", "/habits", "check", "violet", "Habits"],
+          ["money", "/money", "wallet", "amber", "Money"],
+          ["journal", "/journal", "book", "blue", "Journal"]
+        ].filter(([k]) => config.features?.[k] !== false).map(([k, href, icon, tone, label]) => (
+          <Tap key={k} onPress={() => go(href)} style={{ flex: 1 }} accessibilityRole="link" accessibilityLabel={label}>
+            <Glass radius={16} style={{ alignItems: "center", gap: 6, paddingVertical: 10 }}>
+              <Icon3D name={icon} tone={tone} size={34} />
+              <T v="tiny" style={{ fontWeight: "700" }}>{label}</T>
+            </Glass>
+          </Tap>
+        ))}
+      </Rise>
+
       {config.features?.assistant !== false && (
         <Rise delay={110}>
           <PlanMyDay goalsCount={data.goals.length} onAdded={reload} />
@@ -104,7 +120,7 @@ export default function Today() {
           <Card>
             <T v="h3">Nothing planned yet</T>
             <T muted style={{ lineHeight: 21 }}>{data.goals.length ? "Add a task below, or let the coach plan your day." : "Set your first goal and we'll build your daily plan around it."}</T>
-            {!data.goals.length && <Button title="Set my first goal" icon="target" onPress={() => router.push("/goal/new")} />}
+            {!data.goals.length && <Button title="Set my first goal" icon="target" onPress={() => go("/goal/new")} />}
           </Card>
         </Rise>
       )}
@@ -116,16 +132,16 @@ export default function Today() {
 
       {data.goals.length > 0 && (
         <Rise delay={280}>
-          <SectionTitle title="Goals" action="See all" onAction={() => router.push("/goals")} />
+          <SectionTitle title="Goals" action="See all" onAction={() => go("/goals")} />
           <Card style={{ marginTop: 8 }}>
             {data.goals.map((g, i) => (
-              <Pressable key={g.id} onPress={() => router.push(`/goal/${g.id}`)} accessibilityRole="link" style={{ gap: 6, paddingVertical: 4 }}>
+              <Tap key={g.id} onPress={() => go(`/goal/${g.id}`)} accessibilityRole="link" style={{ gap: 6, paddingVertical: 4 }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                   <T v="small" style={{ fontWeight: "700", flex: 1 }} numberOfLines={1}>{g.title}</T>
                   <T v="small" muted>{g.progress}%</T>
                 </View>
                 <Bar value={g.progress} color={areaColor(t, g.category)} delay={300 + i * 60} height={6} />
-              </Pressable>
+              </Tap>
             ))}
           </Card>
         </Rise>
@@ -165,7 +181,7 @@ function PlanMyDay({ goalsCount, onAdded }) {
 
   if (state.status === "idle") {
     return (
-      <Pressable onPress={run} accessibilityRole="button" accessibilityLabel="Plan my day with the AI coach">
+      <Tap onPress={run} accessibilityRole="button" accessibilityLabel="Plan my day with the AI coach">
         {({ pressed }) => (
           <AiCard title="Plan my day" style={{ opacity: pressed ? 0.9 : 1 }} action={<Chevron color={t.muted} dir="right" size={16} />}>
             <T v="small" muted style={{ lineHeight: 19 }}>
@@ -173,12 +189,12 @@ function PlanMyDay({ goalsCount, onAdded }) {
             </T>
           </AiCard>
         )}
-      </Pressable>
+      </Tap>
     );
   }
 
   return (
-    <AiCard title="Your plan for today" action={state.status !== "loading" ? <Pressable onPress={() => setState({ status: "idle" })} hitSlop={10} accessibilityLabel="Close plan"><Icon name="x" color={t.muted} size={16} /></Pressable> : null}>
+    <AiCard title="Your plan for today" action={state.status !== "loading" ? <Tap onPress={() => setState({ status: "idle" })} hitSlop={10} accessibilityLabel="Close plan"><Icon name="x" color={t.muted} size={16} /></Tap> : null}>
       {state.status === "loading" && <AiThinking label="Looking at your goals and week…" />}
       {state.status === "error" && <AiError error={state.error} />}
       {state.status === "ready" && (
@@ -188,7 +204,7 @@ function PlanMyDay({ goalsCount, onAdded }) {
             {state.tasks.map((task, i) => {
               const on = Boolean(picked[i]);
               return (
-                <Pressable key={i} onPress={() => setPicked((p) => ({ ...p, [i]: !on }))} accessibilityRole="checkbox" accessibilityState={{ checked: on }} accessibilityLabel={task.title}
+                <Tap key={i} onPress={() => setPicked((p) => ({ ...p, [i]: !on }))} accessibilityRole="checkbox" accessibilityState={{ checked: on }} accessibilityLabel={task.title}
                   style={{ flexDirection: "row", gap: 10, alignItems: "flex-start", padding: 10, borderRadius: 14, backgroundColor: on ? t.soft : t.s1, borderWidth: 1, borderColor: on ? t.pbd : t.line }}>
                   <View style={{ width: 20, height: 20, borderRadius: 6, marginTop: 1, borderWidth: 1.5, borderColor: on ? t.ink : t.muted, backgroundColor: on ? t.acc : "transparent", alignItems: "center", justifyContent: "center" }}>
                     {on && <Icon name="check" color={t.onAcc} size={12} strokeWidth={3} />}
@@ -197,7 +213,7 @@ function PlanMyDay({ goalsCount, onAdded }) {
                     <T v="small" style={{ fontWeight: "700" }}>{task.title}</T>
                     <T v="tiny" muted style={{ fontWeight: "500", lineHeight: 15 }}>{WHEN[task.time_of_day]} · {task.minutes} min · {task.why}</T>
                   </View>
-                </Pressable>
+                </Tap>
               );
             })}
           </View>

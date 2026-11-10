@@ -1,10 +1,10 @@
 import { useFocusEffect } from "expo-router";
 import { useCallback, useRef, useState } from "react";
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from "react-native";
+import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AiError } from "../../components/AiCard";
 import { Icon } from "../../components/icons";
-import { Card, Glass, GlassBackground, T, TAB_BAR_SPACE } from "../../components/ui";
+import { Card, Glass, GlassBackground, T, TAB_BAR_SPACE, Tap } from "../../components/ui";
 import { api } from "../../lib/api";
 import { useApp, useTheme } from "../../lib/AppContext";
 import { useAppConfig } from "../../lib/appConfig";
@@ -90,9 +90,9 @@ export default function Assistant() {
               <T v="small" muted>Knows your goals, tasks and how your week is going.</T>
             </View>
             {messages?.length ? (
-              <Pressable onPress={clear} accessibilityRole="button" accessibilityLabel="Clear conversation" hitSlop={8}>
+              <Tap onPress={clear} accessibilityRole="button" accessibilityLabel="Clear conversation" hitSlop={8}>
                 <Glass radius={12} style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}><Icon name="refresh" color={t.text} size={18} /></Glass>
-              </Pressable>
+              </Tap>
             ) : null}
           </View>
 
@@ -114,14 +114,14 @@ export default function Assistant() {
                   <T v="small" muted style={{ textAlign: "center", maxWidth: 290, lineHeight: 19 }}>Ask about your goals, your week, or what to do next. Answers are based on your own data.</T>
                 </View>
                 {STARTERS.map((s) => (
-                  <Pressable key={s} onPress={() => send(s)} accessibilityRole="button">
+                  <Tap key={s} onPress={() => send(s)} accessibilityRole="button">
                     {({ pressed }) => (
                       <Glass radius={16} style={{ paddingVertical: 12, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 10, opacity: pressed ? 0.85 : 1 }}>
                         <T v="small" style={{ flex: 1, fontWeight: "600" }}>{s}</T>
                         <Icon name="send" color={t.muted} size={15} />
                       </Glass>
                     )}
-                  </Pressable>
+                  </Tap>
                 ))}
               </View>
             )}
@@ -147,10 +147,10 @@ export default function Assistant() {
                 accessibilityLabel="Message to your coach"
                 style={[{ flex: 1, minHeight: 40, maxHeight: 120, color: t.text, fontSize: 16, paddingTop: 10, paddingBottom: 10 }, Platform.OS === "web" && { outlineStyle: "none" }]}
               />
-              <Pressable onPress={() => send()} disabled={!text.trim() || sending} accessibilityRole="button" accessibilityLabel="Send"
+              <Tap onPress={() => send()} disabled={!text.trim() || sending} accessibilityRole="button" accessibilityLabel="Send"
                 style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: text.trim() && !sending ? t.acc : t.track, alignItems: "center", justifyContent: "center" }}>
                 <Icon name="arrowUp" color={text.trim() && !sending ? t.onAcc : t.muted} size={18} strokeWidth={2.2} />
-              </Pressable>
+              </Tap>
             </Glass>
             {usage && usage.limit <= 50 ? (
               <T v="tiny" muted style={{ textAlign: "center", marginTop: 6, fontWeight: "500" }}>{usage.remaining} of {usage.limit} AI requests left today</T>

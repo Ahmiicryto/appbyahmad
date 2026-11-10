@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, View } from "react-native";
+import { KeyboardAvoidingView, Platform, View } from "react-native";
 import { Button, Chip, Field, Header, Ring, Rise, Screen, T } from "../../components/ui";
 import { api } from "../../lib/api";
 import { useTheme } from "../../lib/AppContext";

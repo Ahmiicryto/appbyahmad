@@ -1,12 +1,12 @@
 // Plans & Premium.
 // iOS / Android: App Store and Google Play subscriptions through RevenueCat (required by store rules).
 // Web: Stripe checkout. Prices, features and trials come from admin → Plans.
+import { back } from "../lib/nav";
 import * as WebBrowser from "expo-web-browser";
-import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Linking, Platform, Pressable, View } from "react-native";
+import { Linking, Platform, View } from "react-native";
 import { Icon } from "../components/icons";
-import { Button, Card, ErrorBox, Glass, Header, IconTile, Loading, Pill, Rise, Screen, Segmented, T } from "../components/ui";
+import { Button, Card, ErrorBox, Glass, Header, IconTile, Loading, Pill, Rise, Screen, Segmented, T, Tap } from "../components/ui";
 import { api } from "../lib/api";
 import { useApp, useTheme } from "../lib/AppContext";
 import { useAppConfig } from "../lib/appConfig";
@@ -93,7 +93,7 @@ export default function Premium() {
   }
 
   async function subscribe() {
-    if (choice === "free") return router.back();
+    if (choice === "free") return back();
     if (!plan) return;
     setBusy("buy");
     setActionError(null);
@@ -177,9 +177,9 @@ export default function Premium() {
       <Header
         title=""
         right={useStore && !user?.isPremium ? (
-          <Pressable onPress={restore} accessibilityRole="button" disabled={Boolean(busy)} hitSlop={8}>
+          <Tap onPress={restore} accessibilityRole="button" disabled={Boolean(busy)} hitSlop={8}>
             <T v="small" color={t.ink} style={{ fontWeight: "800" }}>{busy === "restore" ? "Restoring…" : "Restore purchases"}</T>
-          </Pressable>
+          </Tap>
         ) : null}
       />
 
@@ -287,8 +287,8 @@ export default function Premium() {
 
       {(legal.termsUrl || legal.privacyUrl) && (
         <View style={{ flexDirection: "row", justifyContent: "center", gap: 18 }}>
-          {legal.termsUrl ? <Pressable onPress={() => Linking.openURL(legal.termsUrl)} accessibilityRole="link"><T v="small" color={t.ink} style={{ fontWeight: "700" }}>Terms of use</T></Pressable> : null}
-          {legal.privacyUrl ? <Pressable onPress={() => Linking.openURL(legal.privacyUrl)} accessibilityRole="link"><T v="small" color={t.ink} style={{ fontWeight: "700" }}>Privacy policy</T></Pressable> : null}
+          {legal.termsUrl ? <Tap onPress={() => Linking.openURL(legal.termsUrl)} accessibilityRole="link"><T v="small" color={t.ink} style={{ fontWeight: "700" }}>Terms of use</T></Tap> : null}
+          {legal.privacyUrl ? <Tap onPress={() => Linking.openURL(legal.privacyUrl)} accessibilityRole="link"><T v="small" color={t.ink} style={{ fontWeight: "700" }}>Privacy policy</T></Tap> : null}
         </View>
       )}
 
@@ -301,7 +301,7 @@ export default function Premium() {
 function PlanCard({ selected, onPress, icon, name, sub, price, per, feats, popular }) {
   const t = useTheme();
   return (
-    <Pressable onPress={onPress} accessibilityRole="radio" accessibilityState={{ checked: selected }} accessibilityLabel={`${name}, ${price} ${per}`}>
+    <Tap onPress={onPress} accessibilityRole="radio" accessibilityState={{ checked: selected }} accessibilityLabel={`${name}, ${price} ${per}`}>
       {({ pressed }) => (
         <Glass radius={24} border={selected ? t.ink : undefined} style={{ padding: 16, gap: 12, borderWidth: 2, backgroundColor: selected ? t.soft : t.s1, transform: [{ scale: pressed ? 0.98 : selected ? 1 : 0.985 }] }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
@@ -330,6 +330,6 @@ function PlanCard({ selected, onPress, icon, name, sub, price, per, feats, popul
           </View>
         </Glass>
       )}
-    </Pressable>
+    </Tap>
   );
 }

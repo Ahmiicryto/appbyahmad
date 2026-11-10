@@ -1,55 +1,71 @@
-import { router } from "expo-router";
-import { Pressable, View } from "react-native";
-import { Card, IconTile, Rise, Screen, T } from "../../components/ui";
+import { View } from "react-native";
+import { Icon } from "../../components/icons";
+import { Card, Chevron, Icon3D, Rise, Screen, SectionTitle, T, Tap } from "../../components/ui";
 import { useTheme } from "../../lib/AppContext";
 import { useAppConfig } from "../../lib/appConfig";
+import { go } from "../../lib/nav";
 
-// Screens that exist in the app today. An area is only tappable when it is switched on AND has a screen.
-const ROUTES = { journal: "/journal", assistant: "/assistant" };
+// Areas with a screen today. Missing feature keys count as on (older saved settings).
+const LIVE = [
+  { key: "fitness", icon: "dumbbell", tone: "orange", title: "Workout", sub: "Guided home workouts", href: "/fitness" },
+  { key: "habits", icon: "check", tone: "violet", title: "Habits", sub: "Daily streaks", href: "/habits" },
+  { key: "money", icon: "wallet", tone: "amber", title: "Money", sub: "Spending & budget", href: "/money" },
+  { key: "journal", icon: "book", tone: "blue", title: "Journal", sub: "Private reflections", href: "/journal" },
+  { key: "assistant", icon: "sparkles", tone: "indigo", title: "Coach", sub: "Ask your AI coach", href: "/assistant" }
+];
+const SOON = [
+  { key: "nutrition", icon: "leaf", tone: "lime", title: "Nutrition" },
+  { key: "career", icon: "briefcase", tone: "pink", title: "Career" },
+  { key: "future_me", icon: "sparkles", tone: "cyan", title: "Future Me" },
+  { key: "decisions", icon: "scale", tone: "slate", title: "Decisions" }
+];
 
 export default function Life() {
   const t = useTheme();
   const { config } = useAppConfig();
   const features = config.features ?? {};
-  const areas = [
-    { key: "journal", icon: "book", title: "Journal", sub: "Private place for your feelings", color: t.ink },
-    { key: "money", icon: "wallet", title: "Money", sub: "Income, spending, savings goals", color: t.c2 },
-    { key: "fitness", icon: "dumbbell", title: "Fitness", sub: "Your weekly workout plan", color: t.c3 },
-    { key: "nutrition", icon: "leaf", title: "Nutrition", sub: "Calories, macros and meals", color: t.c3 },
-    { key: "career", icon: "briefcase", title: "Career", sub: "Roadmap, résumé, job tracker", color: t.c4 },
-    { key: "future_me", icon: "sparkles", title: "Future Me", sub: "The person you want to become", color: t.ink },
-    { key: "decisions", icon: "scale", title: "Decisions", sub: "Compare options with your data", color: t.c4 }
-  ].map((a) => {
-    const on = Boolean(features[a.key]);
-    const href = on ? ROUTES[a.key] : undefined;
-    return { ...a, href, tag: href ? null : on ? "Available soon" : "Coming next" };
-  });
+  const live = LIVE.filter((a) => features[a.key] !== false);
 
   return (
     <Screen tabBar>
-      <Rise style={{ gap: 4 }}>
+      <Rise style={{ gap: 2 }}>
         <T v="h1">Life</T>
         <T v="small" muted>Every area of your life, connected to your daily plan.</T>
       </Rise>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-        {areas.map((a, i) => (
-          <Rise key={a.key} delay={60 + i * 50} style={{ width: "48%", flexGrow: 1 }}>
-            <Pressable
-              disabled={!a.href}
-              onPress={() => router.push(a.href)}
-              accessibilityRole={a.href ? "link" : "text"}
-              accessibilityLabel={a.href ? a.title : `${a.title}, ${a.tag === "Available soon" ? "available soon" : "coming next"}`}
-            >
-              <Card style={{ minHeight: 120, opacity: a.href ? 1 : a.tag === "Available soon" ? 0.85 : 0.65 }}>
-                <IconTile name={a.icon} color={a.color} size={40} />
-                <T v="h3">{a.title}</T>
-                <T v="small" muted>{a.sub}</T>
-                {a.tag && <T v="tiny" color={a.tag === "Available soon" ? t.ink : undefined} muted={a.tag !== "AVAILABLE SOON"}>{a.tag}</T>}
+        {live.map((a, i) => (
+          <Rise key={a.key} delay={40 + i * 40} style={{ width: "48%", flexGrow: 1 }}>
+            <Tap onPress={() => go(a.href)} accessibilityRole="link" accessibilityLabel={a.title}>
+              <Card style={{ gap: 10 }}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <Icon3D name={a.icon} tone={a.tone} size={42} />
+                  <Chevron color={t.muted} dir="right" size={16} />
+                </View>
+                <View>
+                  <T v="h3">{a.title}</T>
+                  <T v="tiny" muted style={{ fontWeight: "500" }}>{a.sub}</T>
+                </View>
               </Card>
-            </Pressable>
+            </Tap>
           </Rise>
         ))}
       </View>
+
+      <Rise delay={260}>
+        <SectionTitle title="Coming soon" />
+        <Card style={{ marginTop: 8, flexDirection: "row", justifyContent: "space-between" }}>
+          {SOON.map((a) => (
+            <View key={a.key} style={{ alignItems: "center", gap: 6, flex: 1, opacity: 0.7 }}>
+              <Icon3D name={a.icon} tone={a.tone} size={36} />
+              <T v="tiny" muted style={{ fontWeight: "600" }}>{a.title}</T>
+            </View>
+          ))}
+        </Card>
+        <View style={{ flexDirection: "row", gap: 6, alignItems: "center", marginTop: 8 }}>
+          <Icon name="info" color={t.muted} size={13} />
+          <T v="tiny" muted style={{ fontWeight: "500" }}>New areas arrive in free updates.</T>
+        </View>
+      </Rise>
     </Screen>
   );
 }

@@ -1,8 +1,8 @@
-import { router } from "expo-router";
+import { swap } from "../../lib/nav";
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, View } from "react-native";
+import { KeyboardAvoidingView, Platform, View } from "react-native";
 import { Icon } from "../../components/icons";
-import { Button, Card, Checkbox, Header, Rise, Screen, T } from "../../components/ui";
+import { Button, Card, Checkbox, Header, Rise, Screen, T, Tap } from "../../components/ui";
 import { EmailField, PasswordField } from "../../components/AuthFields";
 import { useApp, useTheme } from "../../lib/AppContext";
 import { useAppConfig } from "../../lib/appConfig";
@@ -94,9 +94,9 @@ export default function SignUp() {
 
           {error && !error.fields ? <T color={t.bad} style={{ fontWeight: "600" }}>{error.message}</T> : null}
           <Button title="Create account" onPress={submit} busy={busy} disabled={!ready} />
-          <Pressable onPress={() => router.replace("/sign-in")} accessibilityRole="button" style={{ minHeight: 44, alignItems: "center", justifyContent: "center" }}>
+          <Tap onPress={() => swap("/sign-in")} accessibilityRole="button" style={{ minHeight: 44, alignItems: "center", justifyContent: "center" }}>
             <T v="small" muted>Already have an account? <T v="small" color={t.ink} style={{ fontWeight: "800" }}>Sign in</T></T>
-          </Pressable>
+          </Tap>
           <View style={{ flexDirection: "row", gap: 6, alignItems: "center", justifyContent: "center" }}>
             <Icon name="lock" color={t.muted} size={13} />
             <T v="tiny" muted style={{ fontWeight: "600" }}>Encrypted. We never sell your data.</T>

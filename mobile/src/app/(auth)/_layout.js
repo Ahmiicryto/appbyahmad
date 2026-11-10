@@ -7,7 +7,7 @@ export const unstable_settings = { initialRouteName: "welcome" };
 export default function AuthLayout() {
   const t = useTheme();
   return (
-    <Stack initialRouteName="welcome" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: t.bg } }}>
+    <Stack initialRouteName="welcome" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: t.bg }, animation: "slide_from_right", animationDuration: 260 }}>
       <Stack.Screen name="welcome" />
       <Stack.Screen name="sign-up" />
       <Stack.Screen name="sign-in" />

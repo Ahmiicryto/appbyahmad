@@ -1,7 +1,7 @@
-import { router } from "expo-router";
+import { go } from "../lib/nav";
 import { useEffect, useState } from "react";
-import { Linking, Pressable, Switch, View } from "react-native";
-import { Card, ErrorBox, Header, Rise, Screen, T } from "../components/ui";
+import { Linking, Switch, View } from "react-native";
+import { Card, ErrorBox, Header, Rise, Screen, T, Tap } from "../components/ui";
 import { api } from "../lib/api";
 import { useTheme } from "../lib/AppContext";
 import { useLoad } from "../lib/useLoad";
@@ -24,7 +24,7 @@ function when(d) {
 
 function open(url) {
   if (typeof url !== "string" || !url) return;
-  if (url.startsWith("/")) router.push(url);
+  if (url.startsWith("/")) go(url);
   else if (/^https:\/\//i.test(url)) Linking.openURL(url).catch(() => {});
 }
 
@@ -52,9 +52,9 @@ export default function Notifications() {
       <Header
         title="Notifications"
         right={unread > 0 ? (
-          <Pressable onPress={readAll} accessibilityRole="button" style={{ minHeight: 44, justifyContent: "center", paddingHorizontal: 6 }}>
+          <Tap onPress={readAll} accessibilityRole="button" style={{ minHeight: 44, justifyContent: "center", paddingHorizontal: 6 }}>
             <T v="small" color={t.ink} style={{ fontWeight: "800" }}>Read all</T>
-          </Pressable>
+          </Tap>
         ) : null}
       />
 
@@ -67,7 +67,7 @@ export default function Notifications() {
 
       {items.map((n, i) => (
         <Rise key={n.id} delay={Math.min(i, 8) * 40}>
-          <Pressable
+          <Tap
             onPress={() => tap(n)}
             accessibilityRole="button"
             accessibilityLabel={`${n.read ? "" : "Unread. "}${n.title}. ${n.body}`}
@@ -86,7 +86,7 @@ export default function Notifications() {
                 <T muted={n.read} style={{ lineHeight: 21 }}>{n.body}</T>
               </View>
             </Card>
-          </Pressable>
+          </Tap>
         </Rise>
       ))}
 

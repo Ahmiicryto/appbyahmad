@@ -5,7 +5,8 @@ import { requireAuth } from "../lib/auth.js";
 import { decrypt, encrypt } from "../lib/crypto.js";
 import { notFound } from "../lib/errors.js";
 import { track } from "../services/activity.js";
-import { COACH_STYLE, addDays, askStructured, askText, requireAi, usageToday, userContext } from "../services/ai.js";
+import { AiUnavailable, COACH_STYLE, addDays, askStructured, askText, requireAi, usageToday, userContext } from "../services/ai.js";
+import { EXERCISES, EXERCISE_IDS, FOCUSES, LEVELS, byId, templateWorkout } from "../services/exercises.js";
 
 export const aiRouter = Router();
 aiRouter.use(requireAuth);
@@ -177,4 +178,62 @@ If there is little data, say so briefly and make "next_week" about building the 
   );
   track(req.user.id, "ai.weekly_review");
   res.json({ week_start: week, review: { ...data, created_at: saved.created_at }, usage: await usageToday(req.user) });
+});
+
+// ---------------------------------------------------------------- workout builder
+
+const WorkoutPlan = z.object({
+  title: z.string(),
+  summary: z.string(),
+  blocks: z.array(
+    z.object({ exercise_id: z.string(), reps: z.number().int().nullable(), seconds: z.number().int().nullable(), rest_seconds: z.number().int() })
+  )
+});
+const WorkoutBody = z.object({
+  minutes: z.number().int().min(5).max(60).default(15),
+  focus: z.enum(FOCUSES).default("full"),
+  level: z.enum(LEVELS).default("medium")
+}).strict();
+
+// Keeps only known exercises with sane doses, so the app can always animate and time them.
+function cleanBlocks(blocks) {
+  return blocks
+    .filter((b) => byId[b.exercise_id])
+    .slice(0, 40)
+    .map((b) => {
+      const e = byId[b.exercise_id];
+      const seconds = b.seconds ? Math.min(180, Math.max(10, b.seconds)) : null;
+      const reps = !seconds && b.reps ? Math.min(60, Math.max(3, b.reps)) : null;
+      return { exercise_id: e.id, reps: seconds ? null : reps ?? e.reps ?? null, seconds: seconds ?? (reps ? null : e.seconds ?? 30), rest_seconds: Math.min(90, Math.max(0, b.rest_seconds || 0)) };
+    });
+}
+
+// AI builds the workout when available; otherwise (AI off or daily limit reached) the built-in planner does.
+aiRouter.post("/workout", async (req, res) => {
+  const opts = WorkoutBody.parse(req.body ?? {});
+  try {
+    await requireAi(req.user);
+  } catch (err) {
+    if (err instanceof AiUnavailable || err.code === "ai_limit") {
+      return res.json({ ...templateWorkout(opts), source: "template" });
+    }
+    throw err;
+  }
+  const context = await userContext(req.user.id);
+  const plan = await askStructured({
+    userId: req.user.id,
+    kind: "coach.workout",
+    schema: WorkoutPlan,
+    system: `${COACH_STYLE}
+You design a bodyweight home workout. Use ONLY these exercise ids: ${EXERCISE_IDS.join(", ")}.
+Catalogue: ${JSON.stringify(EXERCISES.map((e) => ({ id: e.id, name: e.name, focus: e.focus })))}
+Total time about ${opts.minutes} minutes including rest; focus "${opts.focus}"; level "${opts.level}".
+Start with a 1-2 move warm-up and end with a stretch. Each block uses reps OR seconds (the other null). rest_seconds 0-60.
+"title" max 30 characters. "summary" one sentence.`,
+    content: `Build my workout.\n\n${JSON.stringify({ ...opts, profile: context.profile, recent: context.tasks_last_7_days.filter((t) => t.source === "fitness") })}`
+  });
+  const blocks = cleanBlocks(plan.blocks);
+  if (blocks.length < 3) return res.json({ ...templateWorkout(opts), source: "template" });
+  track(req.user.id, "ai.workout");
+  res.json({ title: plan.title.slice(0, 40), summary: plan.summary.slice(0, 200), blocks, source: "ai", usage: await usageToday(req.user) });
 });

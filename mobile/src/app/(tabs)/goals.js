@@ -1,6 +1,6 @@
-import { router } from "expo-router";
-import { Pressable, View } from "react-native";
-import { Bar, Button, Card, ErrorBox, Loading, Rise, Screen, T } from "../../components/ui";
+import { go } from "../../lib/nav";
+import { View } from "react-native";
+import { Bar, Button, Card, ErrorBox, Loading, Rise, Screen, T, Tap } from "../../components/ui";
 import { useTheme } from "../../lib/AppContext";
 import { useLoad } from "../../lib/useLoad";
 import { Icon } from "../../components/icons";
@@ -22,7 +22,7 @@ export default function Goals() {
           <T v="h1">Goals</T>
           <T v="small" muted>{active} active · {goals.length - active} other</T>
         </View>
-        <Button title="New goal" icon="plus" small onPress={() => router.push("/goal/new")} />
+        <Button title="New goal" icon="plus" small onPress={() => go("/goal/new")} />
       </Rise>
       <ErrorBox error={error} onRetry={reload} />
       {!goals.length && !error && (
@@ -30,7 +30,7 @@ export default function Goals() {
           <Card>
             <T v="h3">What do you want to achieve?</T>
             <T muted>Lose 15 kg, save $20,000, start a business, read 20 books… Tell us and we'll turn it into a plan.</T>
-            <Button title="Set my first goal" onPress={() => router.push("/goal/new")} />
+            <Button title="Set my first goal" onPress={() => go("/goal/new")} />
           </Card>
         </Rise>
       )}
@@ -38,7 +38,7 @@ export default function Goals() {
         const color = areaColor(t, g.category);
         return (
           <Rise key={g.id} delay={80 + i * 60}>
-            <Pressable onPress={() => router.push(`/goal/${g.id}`)} accessibilityRole="link" accessibilityLabel={`${g.title}, ${g.progress} percent`}>
+            <Tap onPress={() => go(`/goal/${g.id}`)} accessibilityRole="link" accessibilityLabel={`${g.title}, ${g.progress} percent`}>
               <Card style={{ opacity: g.status === "active" ? 1 : 0.7 }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: t.soft }}>
@@ -55,7 +55,7 @@ export default function Goals() {
                 </View>
                 <T v="small" muted>{g.milestones_done} of {g.milestone_count} milestones done</T>
               </Card>
-            </Pressable>
+            </Tap>
           </Rise>
         );
       })}

@@ -10,7 +10,7 @@ export default function TabsLayout() {
   return (
     <Tabs
       tabBar={(props) => <GlassTabBar {...props} />}
-      screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: t.bg } }}
+      screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: t.bg }, animation: "shift" }}
     >
       <Tabs.Screen name="index" options={{ title: "Today", tabBarIcon: ({ color }) => <TodayIcon color={color} /> }} />
       <Tabs.Screen name="goals" options={{ title: "Goals", tabBarIcon: ({ color }) => <GoalsIcon color={color} /> }} />

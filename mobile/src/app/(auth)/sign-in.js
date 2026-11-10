@@ -1,7 +1,7 @@
-import { router } from "expo-router";
+import { swap } from "../../lib/nav";
 import { useState } from "react";
-import { Alert, KeyboardAvoidingView, Linking, Platform, Pressable, View } from "react-native";
-import { Button, Glass, Header, Rise, Screen, T, Toggle } from "../../components/ui";
+import { Alert, KeyboardAvoidingView, Linking, Platform, View } from "react-native";
+import { Button, Glass, Header, Rise, Screen, T, Tap, Toggle } from "../../components/ui";
 import { EmailField, PasswordField } from "../../components/AuthFields";
 import { useApp, useTheme } from "../../lib/AppContext";
 import { useAppConfig } from "../../lib/appConfig";
@@ -52,9 +52,9 @@ export default function SignIn() {
           <EmailField value={email} onChangeText={setEmail} error={error?.fields?.email?.[0]} />
           <PasswordField value={password} onChangeText={setPassword} error={error?.fields?.password?.[0]} onSubmitEditing={submit} />
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-            <Pressable onPress={forgot} accessibilityRole="button" hitSlop={8}>
+            <Tap onPress={forgot} accessibilityRole="button" hitSlop={8}>
               <T v="small" color={t.ink} style={{ fontWeight: "800" }}>Forgot password?</T>
-            </Pressable>
+            </Tap>
           </View>
 
           <Glass radius={18} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14 }}>
@@ -67,9 +67,9 @@ export default function SignIn() {
 
           {error && !error.fields ? <T color={t.bad} style={{ fontWeight: "600" }}>{error.message}</T> : null}
           <Button title="Sign in" onPress={submit} busy={busy} disabled={!email.trim() || !password} />
-          <Pressable onPress={() => router.replace("/sign-up")} accessibilityRole="button" style={{ minHeight: 44, alignItems: "center", justifyContent: "center" }}>
+          <Tap onPress={() => swap("/sign-up")} accessibilityRole="button" style={{ minHeight: 44, alignItems: "center", justifyContent: "center" }}>
             <T v="small" muted>New here? <T v="small" color={t.ink} style={{ fontWeight: "800" }}>Create an account</T></T>
-          </Pressable>
+          </Tap>
         </Rise>
       </Screen>
     </KeyboardAvoidingView>

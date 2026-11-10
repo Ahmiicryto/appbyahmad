@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { go } from "../../lib/nav";
 import { Linking, View } from "react-native";
 import { Icon } from "../../components/icons";
 import { Button, Glass, IconTile, Logo, Ring, Rise, Screen, T } from "../../components/ui";
@@ -55,8 +55,8 @@ export default function Welcome() {
       </Rise>
 
       <Rise delay={340} style={{ gap: 10, marginTop: 10 }}>
-        {config.signupOpen !== false && <Button title="Create account" onPress={() => router.push("/sign-up")} />}
-        <Button title="I already have an account" variant="secondary" onPress={() => router.push("/sign-in")} />
+        {config.signupOpen !== false && <Button title="Create account" onPress={() => go("/sign-up")} />}
+        <Button title="I already have an account" variant="secondary" onPress={() => go("/sign-in")} />
         <Legal />
       </Rise>
     </Screen>

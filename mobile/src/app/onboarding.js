@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, View } from "react-native";
+import { KeyboardAvoidingView, Platform, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
-import { Button, Card, Field, Glass, Overline, Ring, Rise, Screen, Segmented, T } from "../components/ui";
+import { Button, Card, Field, Glass, Overline, Ring, Rise, Screen, Segmented, T, Tap } from "../components/ui";
 import { useApp, useTheme } from "../lib/AppContext";
 
 const GENDERS = [
@@ -84,7 +84,7 @@ export default function Onboarding() {
                 const sel = f.gender === g.gender;
                 return (
                   <Rise key={g.gender} delay={70 * i}>
-                    <Pressable
+                    <Tap
                       accessibilityRole="radio"
                       accessibilityState={{ checked: sel }}
                       onPress={() => {
@@ -107,7 +107,7 @@ export default function Onboarding() {
                           )}
                         </View>
                       </Glass>
-                    </Pressable>
+                    </Tap>
                   </Rise>
                 );
               })}

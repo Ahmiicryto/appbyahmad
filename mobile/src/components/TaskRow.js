@@ -1,9 +1,9 @@
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { useTheme } from "../lib/AppContext";
 import { areaColor, areaIcon } from "../theme/themes";
 import { Icon } from "./icons";
-import { Glass, T } from "./ui";
+import { Glass, T, Tap } from "./ui";
 
 const SOURCE_LABEL = { goal: "Goal", fitness: "Fitness", money: "Money", career: "Career", custom: "Personal" };
 
@@ -14,7 +14,7 @@ export function TaskRow({ task, onToggle }) {
   const area = task.source === "goal" ? task.goal_category || "goal" : task.source;
   const label = task.goal_title ? `${SOURCE_LABEL[task.source]} · ${task.goal_title}` : SOURCE_LABEL[task.source];
   return (
-    <Pressable
+    <Tap
       onPress={() => onToggle(task)}
       accessibilityRole="checkbox"
       accessibilityState={{ checked: done }}
@@ -38,6 +38,6 @@ export function TaskRow({ task, onToggle }) {
       </View>
       {task.due_time ? <T v="small" muted>{task.due_time}</T> : null}
       </Glass>
-    </Pressable>
+    </Tap>
   );
 }

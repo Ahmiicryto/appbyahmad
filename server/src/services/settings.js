@@ -47,11 +47,13 @@ export const SETTINGS = {
     label: "Announcement banner"
   },
   feature_flags: {
+    // Older saved values may lack newer keys (habits): missing keys count as on.
     schema: z.object({
       journal: z.boolean(), money: z.boolean(), fitness: z.boolean(), nutrition: z.boolean(),
-      career: z.boolean(), future_me: z.boolean(), decisions: z.boolean(), assistant: z.boolean()
+      career: z.boolean(), future_me: z.boolean(), decisions: z.boolean(), assistant: z.boolean(),
+      habits: z.boolean().default(true)
     }),
-    default: () => ({ journal: true, money: false, fitness: false, nutrition: false, career: false, future_me: false, decisions: false, assistant: true }),
+    default: () => ({ journal: true, habits: true, money: true, fitness: true, nutrition: false, career: false, future_me: false, decisions: false, assistant: true }),
     group: "app",
     label: "Features visible in the app"
   },

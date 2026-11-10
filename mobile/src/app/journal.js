@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Pressable, TextInput, View } from "react-native";
+import { TextInput, View } from "react-native";
 import { AiCard, AiError, AiThinking } from "../components/AiCard";
 import { Icon, MoodFace } from "../components/icons";
-import { Button, Card, ErrorBox, Field, Glass, Header, Rise, Screen, SectionTitle, T } from "../components/ui";
+import { Button, Card, ErrorBox, Field, Glass, Header, Rise, Screen, SectionTitle, T, Tap } from "../components/ui";
 import { reflectOn } from "../lib/ai";
 import { api } from "../lib/api";
 import { useTheme } from "../lib/AppContext";
@@ -63,12 +63,12 @@ export default function Journal() {
         {MOODS.map((m) => {
           const sel = mood === m.key;
           return (
-            <Pressable key={m.key} onPress={() => setMood(sel ? null : m.key)} accessibilityRole="radio" accessibilityState={{ checked: sel }} accessibilityLabel={m.label} style={{ flex: 1 }}>
+            <Tap key={m.key} onPress={() => setMood(sel ? null : m.key)} accessibilityRole="radio" accessibilityState={{ checked: sel }} accessibilityLabel={m.label} style={{ flex: 1 }}>
               <Glass radius={16} border={sel ? t.ink : undefined} style={{ alignItems: "center", gap: 6, paddingVertical: 12, borderWidth: sel ? 1.5 : 1, backgroundColor: sel ? t.soft : t.s1 }}>
                 <MoodFace mood={m.key} color={sel ? t.ink : t.muted} size={26} />
                 <T v="tiny" color={sel ? t.ink : t.muted} style={{ fontWeight: "700" }}>{m.label}</T>
               </Glass>
-            </Pressable>
+            </Tap>
           );
         })}
       </Rise>
@@ -110,9 +110,9 @@ export default function Journal() {
                 {e.mood ? ` · ${moodLabel(e.mood)}` : ""}
               </T>
             </View>
-            <Pressable onPress={() => remove(e)} accessibilityRole="button" accessibilityLabel="Delete entry" hitSlop={8}>
+            <Tap onPress={() => remove(e)} accessibilityRole="button" accessibilityLabel="Delete entry" hitSlop={8}>
               <Icon name="trash" color={t.muted} size={17} />
-            </Pressable>
+            </Tap>
           </View>
           <T style={{ lineHeight: 23 }}>{e.body}</T>
           {aiOn && <Reflection entry={e} onDone={(r) => setReflection(e.id, r)} />}
@@ -161,9 +161,9 @@ function Reflection({ entry, onDone }) {
   if (state.status === "loading") return <AiThinking label="Reading your entry…" />;
   if (state.status === "error") return <AiError error={state.error} />;
   return (
-    <Pressable onPress={run} accessibilityRole="button" hitSlop={6} style={{ flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", paddingVertical: 4 }}>
+    <Tap onPress={run} accessibilityRole="button" hitSlop={6} style={{ flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", paddingVertical: 4 }}>
       <Icon name="sparkles" color={t.ink} size={15} />
       <T v="small" color={t.ink} style={{ fontWeight: "700" }}>Reflect with coach</T>
-    </Pressable>
+    </Tap>
   );
 }

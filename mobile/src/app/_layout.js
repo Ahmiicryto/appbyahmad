@@ -52,17 +52,21 @@ function Navigation() {
   return (
     <>
       <StatusBar style={t.dark ? "light" : "dark"} />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: t.bg } }}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="(auth)" />
-        <Stack.Screen name="onboarding" />
-        <Stack.Screen name="goal/new" options={{ presentation: "modal" }} />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: t.bg }, animation: "slide_from_right", animationDuration: 280, gestureEnabled: true, fullScreenGestureEnabled: true }}>
+        <Stack.Screen name="(tabs)" options={{ animation: "fade" }} />
+        <Stack.Screen name="(auth)" options={{ animation: "fade" }} />
+        <Stack.Screen name="onboarding" options={{ animation: "fade" }} />
+        <Stack.Screen name="goal/new" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
         <Stack.Screen name="goal/[id]" />
         <Stack.Screen name="journal" />
         <Stack.Screen name="settings" />
         <Stack.Screen name="notifications" />
-        <Stack.Screen name="premium" />
+        <Stack.Screen name="premium" options={{ animation: "slide_from_bottom" }} />
         <Stack.Screen name="profile" />
+        <Stack.Screen name="fitness/index" />
+        <Stack.Screen name="fitness/workout" options={{ gestureEnabled: false, animation: "slide_from_bottom" }} />
+        <Stack.Screen name="habits" />
+        <Stack.Screen name="money" />
       </Stack>
       {blocked && (
         <View style={StyleSheet.absoluteFill}>

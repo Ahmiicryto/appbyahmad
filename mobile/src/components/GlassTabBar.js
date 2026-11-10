@@ -1,10 +1,10 @@
 import * as Haptics from "expo-haptics";
 import { BlurView } from "expo-blur";
 import { useEffect, useRef } from "react";
-import { Animated, Platform, Pressable, StyleSheet, View } from "react-native";
+import { Animated, Platform, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../lib/AppContext";
-import { T, WEB_GLASS } from "./ui";
+import { T, Tap, WEB_GLASS } from "./ui";
 
 // Floating frosted pill tab bar. Used as <Tabs tabBar={(p) => <GlassTabBar {...p} />}>.
 // Supports both tab bar APIs: Expo Router 58 passes `emitter` + `navigateToTab`; older React Navigation passes `navigation`.
@@ -62,12 +62,12 @@ function Tab({ focused, onPress, label, color, children }) {
     Animated.spring(a, { toValue: focused ? 1 : 0, friction: 7, tension: 90, useNativeDriver: true }).start();
   }, [a, focused]);
   return (
-    <Pressable onPress={onPress} accessibilityRole="tab" accessibilityState={{ selected: focused }} accessibilityLabel={label} style={{ flex: 1 }}>
+    <Tap onPress={onPress} accessibilityRole="tab" accessibilityState={{ selected: focused }} accessibilityLabel={label} style={{ flex: 1 }}>
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 2, borderRadius: 22 }}>
         <Animated.View style={[StyleSheet.absoluteFill, { borderRadius: 22, backgroundColor: t.soft, opacity: a, transform: [{ scale: a.interpolate({ inputRange: [0, 1], outputRange: [0.7, 1] }) }] }]} />
         <Animated.View style={{ transform: [{ translateY: a.interpolate({ inputRange: [0, 1], outputRange: [1, -1] }) }, { scale: a.interpolate({ inputRange: [0, 1], outputRange: [1, 1.08] }) }] }}>{children}</Animated.View>
         <T v="tiny" color={color} style={{ fontSize: 10.5, fontWeight: "800" }} numberOfLines={1}>{label}</T>
       </View>
-    </Pressable>
+    </Tap>
   );
 }

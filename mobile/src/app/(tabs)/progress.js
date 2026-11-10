@@ -1,9 +1,9 @@
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { AiCard, AiError, AiThinking } from "../../components/AiCard";
 import { Icon } from "../../components/icons";
-import { Button, Card, ErrorBox, Loading, Ring, Rise, Screen, SectionTitle, T } from "../../components/ui";
+import { Button, Card, ErrorBox, Loading, Ring, Rise, Screen, SectionTitle, T, Tap } from "../../components/ui";
 import { getWeeklyReview, makeWeeklyReview } from "../../lib/ai";
 import { useTheme } from "../../lib/AppContext";
 import { useAppConfig } from "../../lib/appConfig";
@@ -109,7 +109,7 @@ function WeeklyReview() {
     <AiCard
       title="Weekly review"
       action={state.status === "ready" ? (
-        <Pressable onPress={generate} hitSlop={10} accessibilityRole="button" accessibilityLabel="Refresh weekly review"><Icon name="refresh" color={t.muted} size={16} /></Pressable>
+        <Tap onPress={generate} hitSlop={10} accessibilityRole="button" accessibilityLabel="Refresh weekly review"><Icon name="refresh" color={t.muted} size={16} /></Tap>
       ) : null}
     >
       {state.status === "loading" && <AiThinking label="Loading…" />}

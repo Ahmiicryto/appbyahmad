@@ -1,7 +1,7 @@
 import { BlurView } from "expo-blur";
+import { back } from "../lib/nav";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { ActivityIndicator, Animated, Easing, Image, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle, Defs, Path, RadialGradient, Stop } from "react-native-svg";
@@ -15,6 +15,36 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 const CAN_BLUR = Platform.OS === "ios";
 export const WEB_GLASS = Platform.OS === "web" ? { backdropFilter: "blur(22px) saturate(160%)", WebkitBackdropFilter: "blur(22px) saturate(160%)" } : null;
 export const TAB_BAR_SPACE = 112;
+
+// ---------------------------------------------------------------- taps
+
+// Ignores repeat taps: while an async handler is running, and for `ms` after any tap.
+// Stops double submits, double navigation and double toggles everywhere it's used.
+export function useGuardedPress(onPress, ms = 500) {
+  const busy = useRef(false);
+  const ref = useRef(onPress);
+  ref.current = onPress;
+  return useCallback((...args) => {
+    if (busy.current || !ref.current) return;
+    busy.current = true;
+    let result;
+    try {
+      result = ref.current(...args);
+    } catch (err) {
+      busy.current = false;
+      throw err;
+    }
+    const release = () => setTimeout(() => (busy.current = false), ms);
+    if (result && typeof result.then === "function") result.then(release, release);
+    else release();
+  }, [ms]);
+}
+
+// Drop-in Pressable with the double-tap guard.
+export function Tap({ onPress, guard = 450, ...rest }) {
+  const press = useGuardedPress(onPress, guard);
+  return <Pressable {...rest} onPress={onPress ? press : undefined} />;
+}
 
 // ---------------------------------------------------------------- background
 
@@ -69,7 +99,7 @@ export function GlassBackground() {
 
 export function Screen({ children, scroll = true, padded = true, edges = ["top"], tabBar = false, footer }) {
   const t = useTheme();
-  const body = padded ? { padding: 18, gap: 12, paddingBottom: tabBar ? TAB_BAR_SPACE : 32 } : null;
+  const body = padded ? { paddingHorizontal: 16, paddingTop: 8, gap: 10, paddingBottom: tabBar ? TAB_BAR_SPACE : 28 } : null;
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
       <GlassBackground />
@@ -87,7 +117,7 @@ export function Screen({ children, scroll = true, padded = true, edges = ["top"]
 
 // ---------------------------------------------------------------- text
 
-const SIZES = { display: [32, "800"], h1: [27, "800"], h2: [20, "800"], h3: [16, "800"], body: [15, "500"], small: [13, "500"], tiny: [11, "700"] };
+const SIZES = { display: [30, "800"], h1: [24, "800"], h2: [19, "700"], h3: [16, "700"], body: [15, "500"], small: [13, "500"], tiny: [11, "600"] };
 
 export function T({ v = "body", color, muted, style, children, ...rest }) {
   const t = useTheme();
@@ -107,8 +137,31 @@ export function SectionTitle({ title, action, onAction }) {
   const t = useTheme();
   return (
     <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", marginTop: 6 }}>
-      <T v="h3" style={{ fontSize: 17 }}>{title}</T>
-      {action ? <Pressable onPress={onAction} hitSlop={8} accessibilityRole="button"><T v="small" color={t.ink} style={{ fontWeight: "700" }}>{action}</T></Pressable> : null}
+      <T v="h3">{title}</T>
+      {action ? <Tap onPress={onAction} hitSlop={8} accessibilityRole="button"><T v="small" color={t.ink} style={{ fontWeight: "700" }}>{action}</T></Tap> : null}
+    </View>
+  );
+}
+
+// 3D-style icon: glossy gradient tile with a highlight, inner shade and soft coloured shadow.
+export const TONES = {
+  violet: ["#B9A2FF", "#6D3DF2"], blue: ["#7CB8FF", "#2F6BEA"], green: ["#5EE0A6", "#0E9F6E"],
+  amber: ["#FFD36B", "#E58A00"], pink: ["#FF9AC9", "#D2337E"], indigo: ["#9DA6FF", "#4A44D6"],
+  lime: ["#C2F065", "#5E9E0E"], cyan: ["#6FE6F5", "#0B8FA8"], orange: ["#FFB27A", "#E5541B"],
+  red: ["#FF8E8E", "#D93232"], slate: ["#C3CEDD", "#6B7A90"]
+};
+export function Icon3D({ name, tone = "violet", size = 44 }) {
+  const [top, bottom] = TONES[tone] ?? TONES.violet;
+  const r = size * 0.3;
+  return (
+    <View style={{ width: size, height: size, borderRadius: r, shadowColor: bottom, shadowOpacity: 0.45, shadowRadius: size * 0.22, shadowOffset: { width: 0, height: size * 0.12 }, elevation: 6 }}>
+      <LinearGradient colors={[top, bottom]} start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }} style={{ flex: 1, borderRadius: r, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+        <View pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, height: "52%", backgroundColor: "rgba(255,255,255,0.22)", borderBottomLeftRadius: size, borderBottomRightRadius: size * 0.6 }} />
+        <View pointerEvents="none" style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "18%", backgroundColor: "rgba(0,0,0,0.10)" }} />
+        <View style={{ shadowColor: "#000", shadowOpacity: 0.25, shadowRadius: 2, shadowOffset: { width: 0, height: 1 } }}>
+          <Icon name={name} color="#FFFFFF" size={size * 0.5} strokeWidth={2.2} />
+        </View>
+      </LinearGradient>
     </View>
   );
 }
@@ -134,7 +187,7 @@ export const Overline = ({ children, color }) => {
 
 // ---------------------------------------------------------------- glass
 
-export function Glass({ children, style, radius = 24, strong, border, intensity = 28 }) {
+export function Glass({ children, style, radius = 18, strong, border, intensity = 28 }) {
   const t = useTheme();
   const flat = StyleSheet.flatten(style) || {};
   const r = flat.borderRadius ?? radius;
@@ -164,7 +217,7 @@ export function Glass({ children, style, radius = 24, strong, border, intensity 
 
 export function Card({ children, style, highlight, strong }) {
   return (
-    <Glass border={highlight} strong={strong} style={[{ padding: 16, gap: 10 }, style]}>
+    <Glass border={highlight} strong={strong} style={[{ padding: 14, gap: 8 }, style]}>
       {children}
     </Glass>
   );
@@ -187,10 +240,11 @@ export function Rise({ delay = 0, children, style }) {
 
 export function Button({ title, onPress, variant = "primary", disabled, busy, style, accessibilityLabel, icon, small }) {
   const t = useTheme();
+  const press = useGuardedPress(onPress, 400);
   const primary = variant === "primary";
   const danger = variant === "danger";
   const fg = primary ? t.onAcc : danger ? t.bad : t.text;
-  const h = small ? 40 : 52;
+  const h = small ? 38 : 50;
   const inner = busy ? (
     <ActivityIndicator color={fg} />
   ) : (
@@ -201,7 +255,7 @@ export function Button({ title, onPress, variant = "primary", disabled, busy, st
   );
   return (
     <Pressable
-      onPress={onPress}
+      onPress={press}
       disabled={disabled || busy}
       accessibilityRole="button"
       accessibilityState={{ disabled: Boolean(disabled || busy), busy: Boolean(busy) }}
@@ -209,9 +263,9 @@ export function Button({ title, onPress, variant = "primary", disabled, busy, st
       style={({ pressed }) => [{ opacity: disabled ? 0.45 : pressed ? 0.9 : 1, transform: [{ scale: pressed ? 0.985 : 1 }] }, style]}
     >
       {primary ? (
-        <View style={{ minHeight: h, borderRadius: small ? 14 : 16, alignItems: "center", justifyContent: "center", paddingHorizontal: small ? 14 : 18, backgroundColor: t.acc, borderWidth: 1, borderColor: t.pbd }}>{inner}</View>
+        <View style={{ minHeight: h, borderRadius: small ? 12 : 14, alignItems: "center", justifyContent: "center", paddingHorizontal: small ? 12 : 16, backgroundColor: t.acc, borderWidth: 1, borderColor: t.pbd }}>{inner}</View>
       ) : (
-        <Glass radius={small ? 14 : 16} border={danger ? t.bad : undefined} style={{ minHeight: h, alignItems: "center", justifyContent: "center", paddingHorizontal: small ? 14 : 18 }}>{inner}</Glass>
+        <Glass radius={small ? 12 : 14} border={danger ? t.bad : undefined} style={{ minHeight: h, alignItems: "center", justifyContent: "center", paddingHorizontal: small ? 12 : 16 }}>{inner}</Glass>
       )}
     </Pressable>
   );
@@ -222,12 +276,12 @@ export function Field({ label, error, style, icon, right, valid, ...input }) {
   return (
     <View style={[{ gap: 6 }, style]}>
       {label ? <T v="small" muted style={{ fontWeight: "800" }}>{label}</T> : null}
-      <Glass radius={16} border={error ? t.bad : valid ? t.good : undefined} style={{ flexDirection: "row", alignItems: "center", minHeight: 52, paddingHorizontal: 14, gap: 10 }}>
+      <Glass radius={14} border={error ? t.bad : valid ? t.good : undefined} style={{ flexDirection: "row", alignItems: "center", minHeight: 48, paddingHorizontal: 12, gap: 8 }}>
         {icon ? <Icon name={icon} color={t.muted} size={18} /> : null}
         <TextInput
           placeholderTextColor={t.muted}
           accessibilityLabel={label || input.placeholder}
-          style={[{ flex: 1, minHeight: 50, color: t.text, fontSize: 16, fontWeight: "600" }, Platform.OS === "web" && { outlineStyle: "none" }]}
+          style={[{ flex: 1, minHeight: 46, color: t.text, fontSize: 15, fontWeight: "500" }, Platform.OS === "web" && { outlineStyle: "none" }]}
           {...input}
         />
         {right}
@@ -237,11 +291,11 @@ export function Field({ label, error, style, icon, right, valid, ...input }) {
   );
 }
 
-export function IconButton({ onPress, label, children, size = 44 }) {
+export function IconButton({ onPress, label, children, size = 40 }) {
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} hitSlop={6} style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-      <Glass radius={14} style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>{children}</Glass>
-    </Pressable>
+    <Tap onPress={onPress} accessibilityRole="button" accessibilityLabel={label} hitSlop={6} style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
+      <Glass radius={12} style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>{children}</Glass>
+    </Tap>
   );
 }
 
@@ -258,11 +312,11 @@ export function Chevron({ color, dir = "left", size = 20 }) {
 export function Header({ title, right, onBack }) {
   const t = useTheme();
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 12, minHeight: 48 }}>
-      <IconButton label="Back" onPress={onBack || (() => (router.canGoBack() ? router.back() : router.replace("/")))}>
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44 }}>
+      <IconButton label="Back" onPress={onBack || (() => (back()))}>
         <Chevron color={t.text} />
       </IconButton>
-      <T v="h1" style={{ flex: 1, fontSize: 24 }} numberOfLines={1}>{title}</T>
+      <T v="h1" style={{ flex: 1, fontSize: 22 }} numberOfLines={1}>{title}</T>
       {right}
     </View>
   );
@@ -286,7 +340,7 @@ export function Toggle({ value, onChange, label, disabled }) {
   }, [a, value]);
   return (
     <Pressable
-      onPress={() => !disabled && onChange(!value)}
+      onPress={useGuardedPress(() => !disabled && onChange(!value), 250)}
       accessibilityRole="switch"
       accessibilityLabel={label}
       accessibilityState={{ checked: Boolean(value), disabled: Boolean(disabled) }}
@@ -303,14 +357,14 @@ export function Toggle({ value, onChange, label, disabled }) {
 export function Checkbox({ checked, onChange, children }) {
   const t = useTheme();
   return (
-    <Pressable onPress={() => onChange(!checked)} accessibilityRole="checkbox" accessibilityState={{ checked: Boolean(checked) }} style={{ flexDirection: "row", gap: 10, alignItems: "flex-start", minHeight: 44, paddingVertical: 4 }}>
+    <Tap guard={250} onPress={() => onChange(!checked)} accessibilityRole="checkbox" accessibilityState={{ checked: Boolean(checked) }} style={{ flexDirection: "row", gap: 10, alignItems: "flex-start", minHeight: 44, paddingVertical: 4 }}>
       <View style={{ width: 22, height: 22, borderRadius: 7, marginTop: 1, borderWidth: 1.5, borderColor: checked ? t.ink : t.muted, backgroundColor: checked ? t.acc : "transparent", alignItems: "center", justifyContent: "center" }}>
         {checked && (
           <Svg width={13} height={13} viewBox="0 0 24 24"><Path d="M5 12l5 5L20 7" stroke={t.onAcc} strokeWidth={3.5} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
         )}
       </View>
       <View style={{ flex: 1 }}>{children}</View>
-    </Pressable>
+    </Tap>
   );
 }
 
@@ -381,15 +435,21 @@ export function Avatar({ profile, size = 46, ring }) {
 // ---------------------------------------------------------------- data viz
 
 // Progress ring that draws itself in. `value` is 0-100.
-export function Ring({ size = 108, stroke = 10, value = 0, color, children, delay = 150, label }) {
+export function Ring({ size = 108, stroke = 10, value = 0, color, children, delay = 150, label, continuous }) {
   const t = useTheme();
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const a = useRef(new Animated.Value(0)).current;
   useEffect(() => {
+    const to = Math.max(0, Math.min(100, value));
+    // Timers move smoothly from where they are; everything else draws in from zero.
+    if (continuous) {
+      Animated.timing(a, { toValue: to, duration: 900, easing: Easing.linear, useNativeDriver: false }).start();
+      return;
+    }
     a.setValue(0);
-    Animated.timing(a, { toValue: Math.max(0, Math.min(100, value)), duration: 1300, delay, easing: EASE, useNativeDriver: false }).start();
-  }, [a, value, delay]);
+    Animated.timing(a, { toValue: to, duration: 1300, delay, easing: EASE, useNativeDriver: false }).start();
+  }, [a, value, delay, continuous]);
   return (
     <View style={{ width: size, height: size }} accessible accessibilityRole="image" accessibilityLabel={label}>
       <Svg width={size} height={size}>
@@ -429,12 +489,12 @@ export function Bar({ value = 0, color, height = 8, delay = 200 }) {
 export function Chip({ label, selected, onPress, accessibilityRole = "radio", icon }) {
   const t = useTheme();
   return (
-    <Pressable onPress={onPress} accessibilityRole={accessibilityRole} accessibilityState={{ selected: Boolean(selected), checked: Boolean(selected) }}>
+    <Tap guard={250} onPress={onPress} accessibilityRole={accessibilityRole} accessibilityState={{ selected: Boolean(selected), checked: Boolean(selected) }}>
       <Glass radius={14} border={selected ? t.ink : undefined} style={{ minHeight: 44, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: selected ? t.soft : t.s1 }}>
         {icon ? <Icon name={icon} color={selected ? t.ink : t.muted} size={15} /> : null}
         <T v="small" color={selected ? t.ink : t.text} style={{ fontWeight: "800" }}>{label}</T>
       </Glass>
-    </Pressable>
+    </Tap>
   );
 }
 

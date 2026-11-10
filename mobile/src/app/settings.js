@@ -1,7 +1,7 @@
-import { router } from "expo-router";
+import { go } from "../lib/nav";
 import { useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
-import { Button, Card, Chevron, Field, Glass, Header, IconTile, Rise, Screen, Segmented, T } from "../components/ui";
+import { StyleSheet, View } from "react-native";
+import { Button, Card, Chevron, Field, Glass, Header, IconTile, Rise, Screen, Segmented, T, Tap } from "../components/ui";
 import { api } from "../lib/api";
 import { useApp, useTheme } from "../lib/AppContext";
 import { confirm } from "../lib/confirm";
@@ -55,7 +55,7 @@ export default function Settings() {
             {COLOR_CHOICES.map((c) => {
               const sel = c.key === colorKey;
               return (
-                <Pressable key={c.key} onPress={() => save({ theme: c.key })} accessibilityRole="radio" accessibilityState={{ checked: sel }} accessibilityLabel={c.label} style={{ flex: 1 }}>
+                <Tap key={c.key} onPress={() => save({ theme: c.key })} accessibilityRole="radio" accessibilityState={{ checked: sel }} accessibilityLabel={c.label} style={{ flex: 1 }}>
                   <Glass radius={16} border={sel ? t.ink : undefined} strong={!sel} style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: 56, padding: 10, borderWidth: 1.5, backgroundColor: sel ? t.soft : t.s2 }}>
                     <View style={{ width: 30, height: 30, borderRadius: 10, backgroundColor: c.hex }} />
                     <View>
@@ -63,7 +63,7 @@ export default function Settings() {
                       <T v="tiny" muted>{c.hex}</T>
                     </View>
                   </Glass>
-                </Pressable>
+                </Tap>
               );
             })}
           </View>
@@ -73,9 +73,9 @@ export default function Settings() {
 
       <Rise delay={90}>
         <Card style={{ gap: 0, paddingVertical: 8 }}>
-          <Row e="bell" label="Notifications" sub="Push, reminders and news" onPress={() => router.push("/notifications")} />
-          <Row e="user" label="Profile" sub="Photo, name and personal info" onPress={() => router.push("/profile")} />
-          <Row e="crown" label={user?.isPremium ? "Premium" : "Get Premium"} sub={user?.isPremium ? "Manage your subscription" : "Unlimited goals and every life area"} onPress={() => router.push("/premium")} last />
+          <Row e="bell" label="Notifications" sub="Push, reminders and news" onPress={() => go("/notifications")} />
+          <Row e="user" label="Profile" sub="Photo, name and personal info" onPress={() => go("/profile")} />
+          <Row e="crown" label={user?.isPremium ? "Premium" : "Get Premium"} sub={user?.isPremium ? "Manage your subscription" : "Unlimited goals and every life area"} onPress={() => go("/premium")} last />
         </Card>
       </Rise>
 
@@ -101,13 +101,13 @@ export default function Settings() {
 function Row({ e, label, sub, onPress, last }) {
   const t = useTheme();
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, minHeight: 60, opacity: pressed ? 0.7 : 1, borderBottomWidth: last ? 0 : StyleSheet.hairlineWidth, borderColor: t.line })}>
+    <Tap onPress={onPress} accessibilityRole="button" style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, minHeight: 60, opacity: pressed ? 0.7 : 1, borderBottomWidth: last ? 0 : StyleSheet.hairlineWidth, borderColor: t.line })}>
       <IconTile name={e} />
       <View style={{ flex: 1 }}>
         <T style={{ fontWeight: "800" }}>{label}</T>
         <T v="small" muted>{sub}</T>
       </View>
       <Chevron color={t.muted} dir="right" size={16} />
-    </Pressable>
+    </Tap>
   );
 }

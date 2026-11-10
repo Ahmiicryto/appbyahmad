@@ -134,7 +134,8 @@ describe("app config", () => {
     assert.equal(r.body.maintenance.on, false);
     assert.equal(r.body.announcement, null);
     assert.equal(r.body.features.journal, true);
-    assert.equal(r.body.features.money, false);
+    assert.equal(r.body.features.money, true);
+    assert.equal(r.body.features.habits, true);
     assert.equal(r.body.minAppVersion, "1.0.0");
     assert.equal(r.body.signupOpen, true);
     assert.equal(r.body.plansAvailable, 2);
